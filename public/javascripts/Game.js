@@ -2,6 +2,7 @@ var boardState  = require('./BoardState')
 var piece = require('./Piece')
 var move = require('./Move')
 var AttributeMods = require('./AttributeMods')
+var indexAndCoordinates = require('./IndexAndCoordinates')
 var board = new Array(128)
 var turn = 'w'
 var boardHistory = []

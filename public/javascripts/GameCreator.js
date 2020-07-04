@@ -1,4 +1,8 @@
 $(document).ready(function(){
+    var squares = []
+    var highlightMove = '#a9a9a9'
+    var locateSquares = {}
+    var pieces = createPieces()
     var currentPiece = ""
     var currentPiecePosition = -1
     var mouseDown = false
@@ -6,10 +10,11 @@ $(document).ready(function(){
     var highlightMove = '#a9a9a9'
     var addingSquares = true //Used to make sure you only add squares or delete them during a single drag
     var mirror = false
-    var board = new Array(128)
-    board = initializeBoard(board)
     $(document).on('load',function(){
         squares = $('[data-square]')
+        for(var i = 0; i < squares.length;i++){
+            locateSquares[$(squares[i]).data()['square']] = squares[i]
+        }
         $('input[name="mirror"]').change(function(){
             mirror=!mirror
         })
@@ -290,6 +295,6 @@ $(document).ready(function(){
         }
         return coordinates
     }
-    $(document).trigger('load')
     var board = Chessboard('myBoard',config)
+    $(document).trigger('load')
 })
