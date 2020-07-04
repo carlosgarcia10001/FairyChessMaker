@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="../stylesheets/chessboard-1.0.0.min.css">
+        </head>
+    <body>
+        <div id="myBoard" style="width: 400px"></div>
+        <div id="squareSelection">
+            <input type="checkbox" name='mirror' value = 'mirrored'/>Mirrored
+            <h1>Square Selection</h1>
+            <input type = "radio" name = "squareSelection" value = "sectioned" checked/>Sectioned
+            <input type = "radio" name = "squareSelection" value = "individual"/>Individual
+        </div>
+        <div id = "Attack Type">
+            <h1>Attack Type</h1>
+            <input type = "radio" name = "attackType" value = "normal" checked/>Normal
+            <input type = "radio" name = "attackType" value = "pacifist"/>Pacifist
+            <input type = "radio" name = "attackType" value = "friendlyFire"/>Friendly Fire
+            <input type = "radio" name = "attackType" value = "traitor"/>Traitor
+        </div>
+        <div id = "Mods">
+            <h1>Move Mods</h1>
+            <input type = "checkbox" name = "movemods" value = "ethereal"/>Ethereal
+            <h1>Attribute Mods</h1>
+            <input type = "checkbox" name = "attrmods" value = "beacon"/>Beacon
+            <input type = "checkbox" name = "attrmods" value = "kingly"/>Kingly
+        </div>
+        <input type = "submit" value = "Submit"/>
+    
+        <script>var exports = {}
+                var require = function(){}</script>
+        <script src = "../javascripts/Piece.js"></script>
+        <script src = "../javascripts/BoardState.js"></script>
+        <script src = "../javascripts/IndexAndCoordinates.js"></script>
+        <script src = "../javascripts/jquery.min.js"></script>
+        <script src = "../javascripts/chessboard-1.0.0.min.js"></script>
+        <script src = "../javascripts/Game.js"></script>
+        <script src = "../javascripts/Move.js"></script>
+        <script src = "../javascripts/GameCreator.js"></script>
+        <script src = "../javascripts/htmlSquareLocater.js"></script>
+    </body>
+</html>
