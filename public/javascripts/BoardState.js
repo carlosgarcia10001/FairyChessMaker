@@ -55,12 +55,13 @@ function pieceIndex(board, color){ //Returns the list of indexes where a certain
     return pieceIndex
 }
 
-
-exports.pieceIndex = pieceIndex
-exports.printBoard=printBoard
-exports.validSquare = validSquare
-exports.emptySquare = emptySquare
-exports.occupiedSquare = occupiedSquare
-exports.allySquare = allySquare
-exports.enemySquare = enemySquare
-exports.pieceHasAttributeMod = pieceHasAttributeMod
+if(typeof exports != 'undefined'){
+    exports.pieceIndex = pieceIndex
+    exports.printBoard=printBoard
+    exports.validSquare = validSquare
+    exports.emptySquare = emptySquare
+    exports.occupiedSquare = occupiedSquare
+    exports.allySquare = allySquare
+    exports.enemySquare = enemySquare
+    exports.pieceHasAttributeMod = pieceHasAttributeMod
+}

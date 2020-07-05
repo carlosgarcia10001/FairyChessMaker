@@ -10,7 +10,7 @@ function createIndexToCoordinatesAndCoordinatesToIndex(){
             number -= 1
             letter = 97
         }
-        let id = String.fromCharCode(letter)+number
+        let id = (String.fromCharCode(letter)+number).toLowerCase()
         indexToCoordinates[i] = id
         coordinatesToIndex[id] = i
         letter++
@@ -18,6 +18,8 @@ function createIndexToCoordinatesAndCoordinatesToIndex(){
     
 }
 
-createIndexToCoordinatesAndCoordinatesToIndex()
-exports.indexToCoordinates=indexToCoordinates
-exports.coordinatesToIndex=coordinatesToIndex
+    createIndexToCoordinatesAndCoordinatesToIndex()
+if(typeof exports != 'undefined'){
+    exports.indexToCoordinates=indexToCoordinates
+    exports.coordinatesToIndex=coordinatesToIndex
+}

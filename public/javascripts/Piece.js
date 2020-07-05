@@ -33,4 +33,4 @@ function createPieces(){
 }
 
 exports.createPiece = createPiece
-exports.createTeam = createPieces
+exports.createPieces = createPieces

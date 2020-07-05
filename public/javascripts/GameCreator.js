@@ -1,8 +1,15 @@
+var piece = require('./Piece')
+var indexAndCoordinates = require('./IndexAndCoordinates')
+var move = require('./Move')
+var game = require('./Game')
+var board = new Array(128)
+game.initializeBoard(board)
+
 $(document).ready(function(){
     var squares = []
     var highlightMove = '#a9a9a9'
     var locateSquares = {}
-    var pieces = createPieces()
+    var pieces = piece.createPieces()
     var currentPiece = ""
     var currentPiecePosition = -1
     var mouseDown = false
@@ -62,27 +69,27 @@ $(document).ready(function(){
             $(squares[i]).mousedown(function(){
                 var leftClick = event.button==0
                 var coordinate = $(this).data()['square']
-                var index = coordinatesToIndex[coordinate]
-                var move = index-coordinatesToIndex[currentPiecePosition]
+                var index = indexAndCoordinates.coordinatesToIndex[coordinate]
+                var targetIndex = index-indexAndCoordinates.coordinatesToIndex[currentPiecePosition]
                 if(leftClick && individualSquares){
                     if(currentPiece!=""){
-                        var alreadyInMove = pieces[currentPiece].mov.indexOf(move)!=-1
-                        if(move!=0){
+                        var alreadyInMove = pieces[currentPiece].mov.indexOf(targetIndex)!=-1
+                        if(targetIndex!=0){
                             if(alreadyInMove){
-                                pieces[currentPiece].mov.splice(pieces[currentPiece].mov.indexOf(move),1)
-                                pieces[currentPiece].movdur.splice(pieces[currentPiece].mov.indexOf(move),1)
+                                pieces[currentPiece].mov.splice(pieces[currentPiece].mov.indexOf(targetIndex),1)
+                                pieces[currentPiece].movdur.splice(pieces[currentPiece].mov.indexOf(targetIndex),1)
                                 if(mirror){
-                                    pieces[currentPiece].mov.splice(pieces[currentPiece].mov.indexOf(-move),1)
-                                    pieces[currentPiece].movdur.splice(pieces[currentPiece].mov.indexOf(-move),1)
+                                    pieces[currentPiece].mov.splice(pieces[currentPiece].mov.indexOf(-targetIndex),1)
+                                    pieces[currentPiece].movdur.splice(pieces[currentPiece].mov.indexOf(-targetIndex),1)
                                 }
                                 updateHighlightedPieces()
                                 addingSquares = false
                             }
                             else{
-                                pieces[currentPiece].mov.push(move)
+                                pieces[currentPiece].mov.push(targetIndex)
                                 pieces[currentPiece].movdur.push(1)
                                 if(mirror){
-                                    pieces[currentPiece].mov.push(-move)
+                                    pieces[currentPiece].mov.push(-targetIndex)
                                     pieces[currentPiece].movdur.push(1)
                                 }
                                 updateHighlightedPieces()
@@ -95,38 +102,38 @@ $(document).ready(function(){
             $(squares[i]).click(function(){
                 var leftClick = event.button==0
                 var coordinate = $(this).data()['square']
-                var index = coordinatesToIndex[coordinate]
-                var move = index-coordinatesToIndex[currentPiecePosition]
+                var index = indexAndCoordinates.coordinatesToIndex[coordinate]
+                var targetIndex = index-indexAndCoordinates.coordinatesToIndex[currentPiecePosition]
                 if(leftClick && !individualSquares){
                     if(currentPiece!=""){
                         var addMoves = true
-                        if(pieces[currentPiece].mov.indexOf(move)!=-1){
+                        if(pieces[currentPiece].mov.indexOf(targetIndex)!=-1){
                             addMoves = false
                         }
-                        if(move<8 && move >0){
+                        if(targetIndex<8 && targetIndex >0){
                             sectionedMovement(pieces[currentPiece], 1, addMoves,mirror)
                         }
-                        else if(move<0 && move>-8){
+                        else if(targetIndex<0 && targetIndex>-8){
                             sectionedMovement(pieces[currentPiece], -1, addMoves,mirror)
                         }
-                        else if(move%16==0){
-                            if(move<0){
+                        else if(targetIndex%16==0){
+                            if(targetIndex<0){
                                 sectionedMovement(pieces[currentPiece], -16, addMoves,mirror)
                             }
                             else{
                                 sectionedMovement(pieces[currentPiece], 16, addMoves,mirror)
                             }
                         }
-                        else if(move%15==0){
-                            if(move<0){
+                        else if(targetIndex%15==0){
+                            if(targetIndex<0){
                                 sectionedMovement(pieces[currentPiece], -15, addMoves,mirror)
                             }
                             else{
                                 sectionedMovement(pieces[currentPiece], 15, addMoves,mirror)
                             }
                         }
-                        else if(move%17==0){
-                            if(move<0){
+                        else if(targetIndex%17==0){
+                            if(targetIndex<0){
                                 sectionedMovement(pieces[currentPiece], -17, addMoves,mirror)
                             }
                             else{
@@ -151,7 +158,6 @@ $(document).ready(function(){
         mouseDown = false
     }
     $("input[value='Submit']").click(function(){
-        console.log(pieces)
         $.post('/',pieces)
     })
     var config = {
@@ -208,51 +214,56 @@ $(document).ready(function(){
         updateHighlightedPieces()
     }
 
-    function onDragStart (source, piece, position, orientation) {
-        if(piece!=currentPiece && source =='spare'){
-            board.position({
-                d4: piece
-            })
+    function onDragStart (source, draggedPiece, position, orientation) {
+        if(draggedPiece!=currentPiece && source =='spare'){
+            htmlBoard.position({
+                d4: draggedPiece
+            }
+        )
+            board[indexAndCoordinates.coordinatesToIndex[currentPiecePosition]] = piece.createPiece()
             currentPiecePosition = 'd4'
-            currentPiece = piece
+            currentPiece = draggedPiece
+            board[indexAndCoordinates.coordinatesToIndex['d4']] = pieces[currentPiece]
             updateHighlightedPieces()
             loadCheckboxes()
-            console.log(pieces[piece])
             return false
         }
-        if(piece==currentPiece && source == 'spare'){
+        if(draggedPiece==currentPiece && source == 'spare'){
             return false
         }
 
     }
     
-    function onDrop(source, target, piece, newPos, oldPos, orientation){
+    function onDrop(source, target, droppedPiece, newPos, oldPos, orientation){
         if(target!='offboard'){
+            board[indexAndCoordinates.coordinatesToIndex[currentPiecePosition]] = piece.createPiece()
             currentPiecePosition = Object.keys(newPos)[0]
+            board[indexAndCoordinates.coordinatesToIndex[currentPiecePosition]] = pieces[currentPiece]
+            console.log(currentPiecePosition)
             updateHighlightedPieces()
         }
     }
 
     function onMouseoverSquare(square, piece){
         if(currentPiece!="" && mouseDown && individualSquares){   
-            var index = coordinatesToIndex[square]
-            var move = index - coordinatesToIndex[currentPiecePosition]
-            var alreadyInMove = pieces[currentPiece].mov.indexOf(move)!=-1
-            if(move!=0){
+            var index = indexAndCoordinates.coordinatesToIndex[square]
+            var targetIndex = index - indexAndCoordinates.coordinatesToIndex[currentPiecePosition]
+            var alreadyInMove = pieces[currentPiece].mov.indexOf(targetIndex)!=-1
+            if(targetIndex!=0){
                 if(alreadyInMove && !addingSquares){
-                    pieces[currentPiece].mov.splice(pieces[currentPiece].mov.indexOf(move),1)
-                    pieces[currentPiece].movdur.splice(pieces[currentPiece].mov.indexOf(move),1)
+                    pieces[currentPiece].mov.splice(pieces[currentPiece].mov.indexOf(targetIndex),1)
+                    pieces[currentPiece].movdur.splice(pieces[currentPiece].mov.indexOf(targetIndex),1)
                     if(mirror){
-                        pieces[currentPiece].mov.splice(pieces[currentPiece].mov.indexOf(-move),1)
-                        pieces[currentPiece].movdur.splice(pieces[currentPiece].mov.indexOf(-move),1)
+                        pieces[currentPiece].mov.splice(pieces[currentPiece].mov.indexOf(-targetIndex),1)
+                        pieces[currentPiece].movdur.splice(pieces[currentPiece].mov.indexOf(-targetIndex),1)
                     }
                     updateHighlightedPieces(currentPiece)
                 }
                 else if(!alreadyInMove && addingSquares){
-                    pieces[currentPiece].mov.push(move)
+                    pieces[currentPiece].mov.push(targetIndex)
                     pieces[currentPiece].movdur.push(1)
                     if(mirror){
-                        pieces[currentPiece].mov.push(-move)
+                        pieces[currentPiece].mov.push(-targetIndex)
                         pieces[currentPiece].movdur.push(1)
                     }
                     updateHighlightedPieces()
@@ -264,6 +275,7 @@ $(document).ready(function(){
 
     function highlightPieces(){
         var moveset = currentPieceMoveCoordinates()
+        console.log(moveset)
         for(var i = 0; i < moveset.length; i++){
             if(!($(moveset[i]).hasClass('moveset'))){
                 $(locateSquares[moveset[i]]).addClass("moveset")
@@ -286,15 +298,14 @@ $(document).ready(function(){
     }
     function currentPieceMoveCoordinates(){
         var coordinates = []
-        for(var i = 0; i < pieces[currentPiece].mov.length;i++){
-            var currentPiecePositionIndex = coordinatesToIndex[currentPiecePosition]
-            var move = currentPiecePositionIndex+pieces[currentPiece].mov[i]
-            if((0x88 & move)==0){
-                coordinates.push(indexToCoordinates[move])
+        var moveList = move.pieceMoveList(board, currentPiecePosition)
+        for(var i = 0; i < moveList.length;i++){
+            if((0x88 & moveList[i])==0){
+                coordinates.push(indexAndCoordinates.indexToCoordinates[moveList[i]])
             }
         }
         return coordinates
     }
-    var board = Chessboard('myBoard',config)
+    var htmlBoard = Chessboard('myBoard',config)
     $(document).trigger('load')
 })

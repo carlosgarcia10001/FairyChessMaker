@@ -2,7 +2,6 @@ var boardState = require('./BoardState')
 var pieceAttack = require('./PieceAttack')
 var piece = require('./Piece')
 var indexAndCoordinates = require('./IndexAndCoordinates')
-const e = require('express')
 var mods = {
     ethereal: function(board, square, moveList){
         var position = square
