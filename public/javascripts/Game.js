@@ -62,30 +62,30 @@ function createFEN(parsedBoard){
 
 function parseFEN(parsedBoard, parsedFEN, parsedPieces){
     var FENcopy = parsedFEN.substring(0)
-    var currentSquare = 0
+    let letter = 97
+    let number = 1
     var keys = Object.keys(parsedPieces)
     while(FENcopy != ''){
         if(FENcopy.startsWith('/')){
-            currentSquare+=8
-            FENcopy = FENcopy.substring(1)
+            letter = 97
+            number++
         }
         else if(!isNaN(Number(FENcopy.charAt(0)))){
             var count = Number(FENcopy.charAt(0))
             for(var i = 0; i < count; i++){
-                parsedBoard[currentSquare] = piece.createPiece()
-                currentSquare++
+                parsedBoard[indexAndCoordinates.coordinatesToIndex[String.fromCharCode(letter)+number]] = piece.createPiece()
+                letter++
             }
-            FENcopy = FENcopy.substring(1)
         }
         else{
             for(var i = 0; i < keys.length; i++){
                 if(parsedPieces[keys[i]].id == FENcopy.charAt(0)){
-                    parsedBoard[currentSquare] = parsedPieces[keys[i]]
+                    parsedBoard[indexAndCoordinates.coordinatesToIndex[String.fromCharCode(letter)+number]] = parsedPieces[keys[i]]
                 }
             }
-            currentSquare++
-            FENcopy = FENcopy.substring(1)
+            letter++
         }
+        FENcopy = FENcopy.substring(1)
     }
 }
 

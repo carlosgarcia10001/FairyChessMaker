@@ -241,7 +241,7 @@ describe('GAME', function(){
             var FEN = '2Q5/3K1K2/8/8/8/8/8/1p1brKNQ'
             game.parseFEN(testBoard, FEN, pieces)
             boardState.printBoard(testBoard)
-            boardState.printBoard(answerBoard)
+            console.log(FEN)
         })
     })
     describe('makeMove', function (){

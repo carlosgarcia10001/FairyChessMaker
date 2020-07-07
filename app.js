@@ -15,7 +15,6 @@ app.get('/play', (req, res) => {
     res.sendFile(path.join(__dirname,"public","html","PlayGame.html"))
 })
 app.post('/',function(req, res, next){
-    console.log(bodyParser.limit)
     fs.appendFile('CustomChessPieces.txt',JSON.stringify(req.body), function(err){
         if (err) throw err;
         console.log("File saved")
