@@ -32,14 +32,14 @@ function unHighlightValidMoves(htmlSquares){
         }
     }
 }
-function updateHighlightedMoves(parsedBoard, parsedIndex, htmlSquares, locateHtmlSquares){
+function updateHighlightedMoves(parsedHtmlBoard, parsedIndex, htmlSquares, locateHtmlSquares){
     unHighlightValidMoves(htmlSquares)
-    highlightValidMoves(parsedBoard, parsedIndex, locateHtmlSquares)
+    highlightValidMoves(parsedHtmlBoard, parsedIndex, locateHtmlSquares)
 }
 
-function currentPieceMoveCoordinates(parsedBoard, parsedIndex){
+function currentPieceMoveCoordinates(parsedHtmlBoard, parsedIndex){
     var coordinates = []
-    var moveList = move.pieceMoveList(parsedBoard, parsedIndex)
+    var moveList = move.pieceMoveList(parsedHtmlBoard, parsedIndex)
     for(var i = 0; i < moveList.length;i++){
         if((0x88 & moveList[i])==0){
             coordinates.push(indexAndCoordinates.indexToCoordinates[moveList[i]])
@@ -53,3 +53,5 @@ function currentPieceMoveCoordinates(parsedBoard, parsedIndex){
 exports.createHtmlSquares = createHtmlSquares
 exports.createLocateHtmlSquares = createLocateHtmlSquares
 exports.updateHighlightedMoves = updateHighlightedMoves
+exports.highlightValidMoves = highlightValidMoves
+exports.unHighlightValidMoves = unHighlightValidMoves

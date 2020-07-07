@@ -60,6 +60,35 @@ function createFEN(parsedBoard){
     return FEN
 }
 
+function parseFEN(parsedBoard, parsedFEN, parsedPieces){
+    var FENcopy = parsedFEN.substring(0)
+    var currentSquare = 0
+    var keys = Object.keys(parsedPieces)
+    while(FENcopy != ''){
+        if(FENcopy.startsWith('/')){
+            currentSquare+=8
+            FENcopy = FENcopy.substring(1)
+        }
+        else if(!isNaN(Number(FENcopy.charAt(0)))){
+            var count = Number(FENcopy.charAt(0))
+            for(var i = 0; i < count; i++){
+                parsedBoard[currentSquare] = piece.createPiece()
+                currentSquare++
+            }
+            FENcopy = FENcopy.substring(1)
+        }
+        else{
+            for(var i = 0; i < keys.length; i++){
+                if(parsedPieces[keys[i]].id == FENcopy.charAt(0)){
+                    parsedBoard[currentSquare] = parsedPieces[keys[i]]
+                }
+            }
+            currentSquare++
+            FENcopy = FENcopy.substring(1)
+        }
+    }
+}
+
 function undoMove(parsedBoard, parsedBoardHistory){
     parsedBoardHistory.splice(parsedBoardHistory.length-1,1)
     parsedBoard = parsedBoardHistory[parsedBoardHistory.length-1].board.slice()
@@ -93,3 +122,4 @@ exports.placePieceOnBoard=placePieceOnBoard
 exports.checkMate = checkMate
 exports.boardHistory = boardHistory
 exports.createFEN = createFEN
+exports.parseFEN = parseFEN

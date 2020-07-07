@@ -1,3 +1,4 @@
+var piece = require('./Piece')
 function cleanPieces(pieces){
     var keys = Object.keys(pieces)
     for(var i = 0; i < keys.length;i++){
@@ -12,6 +13,20 @@ function cleanPiece(piece){
     var movdur = []
     var dmgmov = []
     var dmgmovdur = []
+    if(typeof(piece.mov) =='undefined'){
+        piece.mov = []
+        piece.movdur = []
+    }
+    if(typeof(piece.dmgmov) =='undefined'){
+        piece.dmgmov = []
+        piece.dmgmovdur = []
+    }
+    if(typeof(piece.attrmods) == 'undefined'){
+        piece.attrmods = []
+    }
+    if(typeof(piece.movmods) == 'undefined'){
+        piece.movmods = []
+    }
     for(var i = 0; i < piece.mov.length;i++){
         mov.push(Number(piece.mov[i]))
         movdur.push(Number(piece.movdur[i]))
