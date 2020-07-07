@@ -230,7 +230,7 @@ var makeMove = function(parsedBoard, turn, initial, target, dummyMove = false){
             turn = 'w'
         }
         return indexAndCoordinates.indexToCoordinates[initial].toLowerCase() + "-" + indexAndCoordinates.indexToCoordinates[target].toLowerCase()
-    }
+    } 
     return false 
 }
 

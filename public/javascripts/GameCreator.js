@@ -3,31 +3,27 @@ var indexAndCoordinates = require('./IndexAndCoordinates')
 var move = require('./Move')
 var game = require('./Game')
 var board = new Array(128)
+var htmlBoardControl = require('./htmlBoardControl')
 game.initializeBoard(board)
-
 $(document).ready(function(){
-    var squares = []
-    var highlightMove = '#a9a9a9'
-    var locateSquares = {}
+    var htmlSquares = []
+    var locateHtmlSquares = {}
     var pieces = piece.createPieces()
     var currentPiece = ""
     var currentPiecePosition = -1
     var mouseDown = false
     var individualSquares = false
-    var highlightMove = '#a9a9a9'
     var addingSquares = true //Used to make sure you only add squares or delete them during a single drag
     var mirror = false
     $(document).on('load',function(){
-        squares = $('[data-square]')
-        for(var i = 0; i < squares.length;i++){
-            locateSquares[$(squares[i]).data()['square']] = squares[i]
-        }
+        htmlSquares = htmlBoardControl.createHtmlSquares()
+        locateHtmlSquares = htmlBoardControl.createLocateHtmlSquares(htmlSquares)
         $('input[name="mirror"]').change(function(){
             mirror=!mirror
         })
         $('input[name="attackType"]').change(function(){
             var value = $(this).val()
-            if(currentPiece!=""){
+            if(currentPiece!=""){ 
                 pieces[currentPiece].atttype = value
             }
         })
@@ -64,9 +60,8 @@ $(document).ready(function(){
                 }
             }
         })
-        for(var i = 0; i < squares.length;i++){
-            locateSquares[$(squares[i]).data()['square']] = squares[i]
-            $(squares[i]).mousedown(function(){
+        for(var i = 0; i < htmlSquares.length;i++){
+            $(htmlSquares[i]).mousedown(function(){
                 var leftClick = event.button==0
                 var coordinate = $(this).data()['square']
                 var index = indexAndCoordinates.coordinatesToIndex[coordinate]
@@ -82,7 +77,7 @@ $(document).ready(function(){
                                     pieces[currentPiece].mov.splice(pieces[currentPiece].mov.indexOf(-targetIndex),1)
                                     pieces[currentPiece].movdur.splice(pieces[currentPiece].mov.indexOf(-targetIndex),1)
                                 }
-                                updateHighlightedPieces()
+                                htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
                                 addingSquares = false
                             }
                             else{
@@ -92,14 +87,14 @@ $(document).ready(function(){
                                     pieces[currentPiece].mov.push(-targetIndex)
                                     pieces[currentPiece].movdur.push(1)
                                 }
-                                updateHighlightedPieces()
+                                htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
                                 addingSquares = true
                             }
                         }
                     }
                 }
             })
-            $(squares[i]).click(function(){
+            $(htmlSquares[i]).click(function(){
                 var leftClick = event.button==0
                 var coordinate = $(this).data()['square']
                 var index = indexAndCoordinates.coordinatesToIndex[coordinate]
@@ -143,7 +138,7 @@ $(document).ready(function(){
                     }
                 }
             })
-            $(squares[i]).mousedown(function(){
+            $(htmlSquares[i]).mousedown(function(){
                 if(event.button == 0 && !($(this).data()['square']==currentPiecePosition)){
                     mouseDown=true
                 }
@@ -211,7 +206,7 @@ $(document).ready(function(){
             }
             index+=value
         }
-        updateHighlightedPieces()
+        htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
     }
 
     function onDragStart (source, draggedPiece, position, orientation) {
@@ -224,7 +219,7 @@ $(document).ready(function(){
             currentPiecePosition = 'd4'
             currentPiece = draggedPiece
             board[indexAndCoordinates.coordinatesToIndex['d4']] = pieces[currentPiece]
-            updateHighlightedPieces()
+            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
             loadCheckboxes()
             return false
         }
@@ -240,7 +235,7 @@ $(document).ready(function(){
             currentPiecePosition = Object.keys(newPos)[0]
             board[indexAndCoordinates.coordinatesToIndex[currentPiecePosition]] = pieces[currentPiece]
             console.log(currentPiecePosition)
-            updateHighlightedPieces()
+            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
         }
     }
 
@@ -257,7 +252,7 @@ $(document).ready(function(){
                         pieces[currentPiece].mov.splice(pieces[currentPiece].mov.indexOf(-targetIndex),1)
                         pieces[currentPiece].movdur.splice(pieces[currentPiece].mov.indexOf(-targetIndex),1)
                     }
-                    updateHighlightedPieces(currentPiece)
+                    htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
                 }
                 else if(!alreadyInMove && addingSquares){
                     pieces[currentPiece].mov.push(targetIndex)
@@ -266,46 +261,13 @@ $(document).ready(function(){
                         pieces[currentPiece].mov.push(-targetIndex)
                         pieces[currentPiece].movdur.push(1)
                     }
-                    updateHighlightedPieces()
+                    htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
                     lastHighlightedSquare = currentPiece
                 }
             }
         }
     }
 
-    function highlightPieces(){
-        var moveset = currentPieceMoveCoordinates()
-        console.log(moveset)
-        for(var i = 0; i < moveset.length; i++){
-            if(!($(moveset[i]).hasClass('moveset'))){
-                $(locateSquares[moveset[i]]).addClass("moveset")
-                $(locateSquares[moveset[i]]).css('background', highlightMove)
-            }
-        }
-    }
-
-    function unHighlightPieces(){
-        for(var i = 0; i < squares.length; i++){
-            if($(squares[i]).hasClass('moveset')){
-                $(squares[i]).css('background','')
-                $(squares[i]).removeClass('moveset')
-            }
-        }
-    }
-    function updateHighlightedPieces(){
-        unHighlightPieces()
-        highlightPieces()
-    }
-    function currentPieceMoveCoordinates(){
-        var coordinates = []
-        var moveList = move.pieceMoveList(board, currentPiecePosition)
-        for(var i = 0; i < moveList.length;i++){
-            if((0x88 & moveList[i])==0){
-                coordinates.push(indexAndCoordinates.indexToCoordinates[moveList[i]])
-            }
-        }
-        return coordinates
-    }
     var htmlBoard = Chessboard('myBoard',config)
     $(document).trigger('load')
 })
