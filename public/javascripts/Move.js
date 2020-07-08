@@ -189,7 +189,7 @@ var pieceMoveList = function(board, square){
         var parsedSquare = square + board[square].mov.attPaths[i][0]
         for(var j = 0; j < board[square].mov.attPaths[i].length-1; j++){
             var add = 1
-            if(board[square].mov.paths[i][j]<0){
+            if(board[square].mov.attPaths[i][j]<0){
                 add = -1
             }
             for(var k = board[square].mov.attPaths[i][j]; Math.abs(k) < Math.abs(board[square].mov.attPaths[i][j+1]);k+=add){

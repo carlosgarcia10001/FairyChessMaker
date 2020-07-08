@@ -8,28 +8,43 @@ function cleanPieces(pieces){
 function cleanPiece(piece){
     piece.hp = Number(piece.hp)
     piece.dmg = Number(piece.dmg)
-    var mov = []
-    var movdur = []
-    var dmgmov = []
-    var dmgmovdur = []
-    for(var i = 0; i < piece.mov.length;i++){
-        mov.push(Number(piece.mov[i]))
-        movdur.push(Number(piece.movdur[i]))
-        if(piece.mov==piece.dmgmov){
-            dmgmov.push(Number(piece.dmgmov[i]))
-            dmgmovdur.push(Number(piece.dmgmovdur[i]))
+    var mov = {
+        paths: [],
+        space: [],
+        attPaths: [],
+        attSpace: []
+    }
+    if(typeof(piece.attrmods) == 'undefined'){
+        piece.attrmods = []
+    }
+    if(typeof(piece.movmods) == 'undefined'){
+        piece.movmods = []
+    }
+    for(var i = 0; i < piece.mov.paths.length; i++){
+        mov.paths.push([])
+        for(var j = 0; j < piece.mov.paths[i].length; j++){
+            mov.paths[i].push(Number(piece.mov.paths[i][j]))
         }
     }
-    if(piece.mov!=piece.dmgmov){
-        for(var i = 0; i < piece.dmgmov.length;i++){
-            dmgmov.push(Number(piece.dmgmov[i]))
-            dmgmovdur.push(Number(piece.dmgmovdur[i]))
+    for(var i = 0; i < piece.mov.space.length; i++){
+        mov.space.push([])
+        for(var j = 0; j < piece.mov.space[i].length; j++){
+            mov.space[i].push(Number(piece.mov.space[i][j]))
+        }
+    }
+    for(var i = 0; i < piece.mov.attPaths.length; i++){
+        mov.attPaths.push([])
+        for(var j = 0; j < piece.mov.attPaths[i].length; j++){
+            mov.attPaths[i].push(Number(piece.mov.attPaths[i][j]))
+        }
+    }
+    for(var i = 0; i < piece.mov.attSpace.length; i++){
+        mov.attSpace.push([])
+        for(var j = 0; j < piece.mov.attSpace[i].length; j++){
+            mov.attSpace[i].push(Number(piece.mov.attSpace[i][j]))
         }
     }
     piece.mov = mov
-    piece.movdur = movdur
-    piece.dmgmov = dmgmov
-    piece.dmgmovdur = dmgmovdur
 }
 
 exports.cleanPieces = cleanPieces

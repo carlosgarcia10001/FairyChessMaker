@@ -4,6 +4,56 @@ var move = require('./Move')
 var game = require('./Game')
 var board = new Array(128)
 var htmlBoardControl = require('./htmlBoardControl')
+var horizontalPathLeft = {
+ path: [-1,-8],
+ space: [1]
+}
+var horizontalPathRight = {
+ path: [1,8],
+ space: [1]
+}
+var verticalPathUp = {
+ path: [-16,-112],
+ space: [16]
+}
+var verticalPathDown = {
+    path: [16,112],
+    space: [16]
+}
+var diagonalPathUpLeft = {
+    path: [-17,-119],
+    space: [17]
+}
+var diagonalPathUpRight = {
+    path: [-15, -117],
+    space: [15]
+}
+var diagonalPathDownLeft = {
+    path: [15, 117],
+    space: [15]
+}
+var diagonalPathDownRight = {
+    path: [17,119],
+    space: [17] 
+}
+
+var right = [1,2]
+var left = [-1,-2]
+var down = [16,17]
+var downRight = [17,18]
+var downLeft = [15,16]
+var up = [-16,-17]
+var upLeft = [-17,-18]
+var upRight = [-15,-16]
+var knightUpLeft1 = [-33,-34]
+var knightUpLeft2 = [-18,-19]
+var knightUpRight1 = [-31,-32]
+var knightUpRight2 = [-14,-15]
+var knightDownLeft1 = [14,15]
+var knightDownLeft2 = [31,32]
+var knightDownRight1 = [18,19]
+var knightDownRight2 = [33,34]
+
 game.initializeBoard(board)
 $(document).ready(function(){
     var htmlSquares = []
@@ -11,16 +61,10 @@ $(document).ready(function(){
     var pieces = piece.createPieces()
     var currentPiece = ""
     var currentPiecePosition = -1
-    var mouseDown = false
-    var individualSquares = false
-    var addingSquares = true //Used to make sure you only add squares or delete them during a single drag
-    var mirror = false
+    console.log(pieces)
     $(document).on('load',function(){
         htmlSquares = htmlBoardControl.createHtmlSquares()
         locateHtmlSquares = htmlBoardControl.createLocateHtmlSquares(htmlSquares)
-        $('input[name="mirror"]').change(function(){
-            mirror=!mirror
-        })
         $('input[name="attackType"]').change(function(){
             var value = $(this).val()
             if(currentPiece!=""){ 
@@ -49,117 +93,88 @@ $(document).ready(function(){
                 }
             }
         })
-        $('input[name="squareSelection"]').click(function(){
-            var value = $(this).val()
-            if(currentPiece!="" && $(this).prop('checked')){
-                if(value == 'sectioned'){
-                    individualSquares = false
-                }
-                else{
-                    individualSquares = true
-                }
-            }
-        })
-        for(var i = 0; i < htmlSquares.length;i++){
-            $(htmlSquares[i]).mousedown(function(){
-                var leftClick = event.button==0
-                var coordinate = $(this).data()['square']
-                var index = indexAndCoordinates.coordinatesToIndex[coordinate]
-                var targetIndex = index-indexAndCoordinates.coordinatesToIndex[currentPiecePosition]
-                if(leftClick && individualSquares){
-                    if(currentPiece!=""){
-                        var alreadyInMove = pieces[currentPiece].mov.indexOf(targetIndex)!=-1
-                        if(targetIndex!=0){
-                            if(alreadyInMove){
-                                pieces[currentPiece].mov.splice(pieces[currentPiece].mov.indexOf(targetIndex),1)
-                                pieces[currentPiece].movdur.splice(pieces[currentPiece].mov.indexOf(targetIndex),1)
-                                if(mirror){
-                                    pieces[currentPiece].mov.splice(pieces[currentPiece].mov.indexOf(-targetIndex),1)
-                                    pieces[currentPiece].movdur.splice(pieces[currentPiece].mov.indexOf(-targetIndex),1)
-                                }
-                                htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
-                                addingSquares = false
-                            }
-                            else{
-                                pieces[currentPiece].mov.push(targetIndex)
-                                pieces[currentPiece].movdur.push(1)
-                                if(mirror){
-                                    pieces[currentPiece].mov.push(-targetIndex)
-                                    pieces[currentPiece].movdur.push(1)
-                                }
-                                htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
-                                addingSquares = true
-                            }
-                        }
-                    }
-                }
-            })
-            $(htmlSquares[i]).click(function(){
-                var leftClick = event.button==0
-                var coordinate = $(this).data()['square']
-                var index = indexAndCoordinates.coordinatesToIndex[coordinate]
-                var targetIndex = index-indexAndCoordinates.coordinatesToIndex[currentPiecePosition]
-                if(leftClick && !individualSquares){
-                    if(currentPiece!=""){
-                        var addMoves = true
-                        if(pieces[currentPiece].mov.indexOf(targetIndex)!=-1){
-                            addMoves = false
-                        }
-                        if(targetIndex<8 && targetIndex >0){
-                            sectionedMovement(pieces[currentPiece], 1, addMoves,mirror)
-                        }
-                        else if(targetIndex<0 && targetIndex>-8){
-                            sectionedMovement(pieces[currentPiece], -1, addMoves,mirror)
-                        }
-                        else if(targetIndex%16==0){
-                            if(targetIndex<0){
-                                sectionedMovement(pieces[currentPiece], -16, addMoves,mirror)
-                            }
-                            else{
-                                sectionedMovement(pieces[currentPiece], 16, addMoves,mirror)
-                            }
-                        }
-                        else if(targetIndex%15==0){
-                            if(targetIndex<0){
-                                sectionedMovement(pieces[currentPiece], -15, addMoves,mirror)
-                            }
-                            else{
-                                sectionedMovement(pieces[currentPiece], 15, addMoves,mirror)
-                            }
-                        }
-                        else if(targetIndex%17==0){
-                            if(targetIndex<0){
-                                sectionedMovement(pieces[currentPiece], -17, addMoves,mirror)
-                            }
-                            else{
-                                sectionedMovement(pieces[currentPiece], 17, addMoves,mirror)
-                            }
-                        }
-                    }
-                }
-            })
-            $(htmlSquares[i]).mousedown(function(){
-                if(event.button == 0 && !($(this).data()['square']==currentPiecePosition)){
-                    mouseDown=true
-                }
-            })
-        }
     })
-    $("body").mouseup(function(){
-        mouseDown=false
-        addingSquares = false
-    })
-    window.onfocus = function() {
-        mouseDown = false
-    }
     $("input[value='Submit']").click(function(){
         $.post('/',pieces)
+    })
+    $("#queenMovement").click(function(){
+        if(currentPiece!=""){
+            piece.addPath(pieces[currentPiece], verticalPathUp.path, verticalPathUp.space)
+            piece.addPath(pieces[currentPiece], verticalPathDown.path, verticalPathDown.space)
+            piece.addPath(pieces[currentPiece], horizontalPathLeft.path, horizontalPathLeft.space)
+            piece.addPath(pieces[currentPiece], horizontalPathRight.path, horizontalPathRight.space)
+            piece.addPath(pieces[currentPiece], diagonalPathUpLeft.path, diagonalPathUpLeft.space)
+            piece.addPath(pieces[currentPiece], diagonalPathUpRight.path, diagonalPathUpRight.space)
+            piece.addPath(pieces[currentPiece], diagonalPathDownLeft.path, diagonalPathDownLeft.space)
+            piece.addPath(pieces[currentPiece], diagonalPathDownRight.path, diagonalPathDownRight.space)
+            console.log(board[indexAndCoordinates.coordinatesToIndex[currentPiecePosition]])
+            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+        }
+    })
+    $("#kingMovement").click(function(){
+        if(currentPiece!="")
+            piece.addPath(pieces[currentPiece], right,[1])
+            piece.addPath(pieces[currentPiece], left,[1])
+            piece.addPath(pieces[currentPiece], down,[1])
+            piece.addPath(pieces[currentPiece], downRight,[1])
+            piece.addPath(pieces[currentPiece], downLeft,[1])
+            piece.addPath(pieces[currentPiece], up,[1])
+            piece.addPath(pieces[currentPiece], upLeft,[1])
+            piece.addPath(pieces[currentPiece], upRight,[1])
+            console.log(board[indexAndCoordinates.coordinatesToIndex[currentPiecePosition]])
+            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+    })
+    $("#bishopMovement").click(function(){
+        if(currentPiece!=""){
+            piece.addPath(pieces[currentPiece], diagonalPathUpLeft.path,diagonalPathUpLeft.space)
+            piece.addPath(pieces[currentPiece], diagonalPathUpRight.path,diagonalPathUpRight.space)
+            piece.addPath(pieces[currentPiece], diagonalPathDownLeft.path,diagonalPathDownLeft.space)
+            piece.addPath(pieces[currentPiece], diagonalPathDownRight.path,diagonalPathDownRight.space)
+            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+        }
+    })
+    $("#rookMovement").click(function(){
+        if(currentPiece!=""){
+            piece.addPath(pieces[currentPiece], horizontalPathLeft.path,horizontalPathLeft.space)
+            piece.addPath(pieces[currentPiece], horizontalPathRight.path,horizontalPathRight.space)
+            piece.addPath(pieces[currentPiece], verticalPathUp.path,verticalPathUp.space)
+            piece.addPath(pieces[currentPiece], verticalPathDown.path,verticalPathDown.space)
+            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+        }
+    })
+    $("#knightMovement").click(function(){
+        if(currentPiece!=""){
+            piece.addPath(pieces[currentPiece], knightUpLeft1,[1])
+            piece.addPath(pieces[currentPiece], knightUpLeft2,[1])
+            piece.addPath(pieces[currentPiece], knightUpRight1,[1])
+            piece.addPath(pieces[currentPiece], knightUpRight2,[1])
+            piece.addPath(pieces[currentPiece], knightDownLeft1,[1])
+            piece.addPath(pieces[currentPiece], knightDownLeft2,[1])
+            piece.addPath(pieces[currentPiece], knightDownRight1,[1])
+            piece.addPath(pieces[currentPiece], knightDownRight2,[1])
+            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+          }
+    })
+    $("#pawnMovement").click(function(){
+        if(currentPiece!=""){
+            if(currentPiece.charAt(0)=='w'){
+                piece.addPath(pieces[currentPiece], up, [1], false)
+                piece.addAttPath(pieces[currentPiece],upLeft,[1])
+                piece.addAttPath(pieces[currentPiece], upRight,[1])
+            }
+            else{
+                piece.addPath(pieces[currentPiece], down, [1], false)
+                piece.addAttPath(pieces[currentPiece], downLeft,[1])
+                piece.addAttPath(pieces[currentPiece], downRight,[1])
+            }
+            console.log(pieces[currentPiece])
+            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+        }
     })
     var config = {
         sparePieces: true,
         onDragStart: onDragStart,
         onDrop: onDrop,
-        onMouseoverSquare: onMouseoverSquare,
         pieceTheme: "../images/chesspieces/wikipedia/{piece}.png"
     }
     function loadCheckboxes(){
@@ -178,35 +193,6 @@ $(document).ready(function(){
                 $(attackType[i]).prop('checked',true)
             }
         }
-    }
-    function sectionedMovement(piece, value, addMoves = true, mirrored = false){
-        var index = value
-        for(var i = 0; i < 7; i++){
-            var indexNotInList = piece.mov.indexOf(index)==-1
-            var mirrorIndexNotInList = piece.mov.indexOf(-index)==-1
-            if(addMoves){
-                if(indexNotInList){
-                    piece.mov.push(index)
-                    piece.movdur.push(1)
-                }
-                if(mirror && mirrorIndexNotInList){
-                    piece.mov.push(-index)
-                    piece.movdur.push(1)
-                }
-            }
-            else{
-                if(!indexNotInList){
-                    piece.mov.splice(piece.mov.indexOf(index),1)
-                    piece.movdur.splice(piece.mov.indexOf(index),1)
-                }
-                if(mirror && !mirrorIndexNotInList){
-                    piece.mov.splice(piece.mov.indexOf(-index),1)
-                    piece.movdur.splice(piece.mov.indexOf(-index),1)
-                }
-            }
-            index+=value
-        }
-        htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
     }
 
     function onDragStart (source, draggedPiece, position, orientation) {
@@ -236,35 +222,6 @@ $(document).ready(function(){
             board[indexAndCoordinates.coordinatesToIndex[currentPiecePosition]] = pieces[currentPiece]
             console.log(currentPiecePosition)
             htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
-        }
-    }
-
-    function onMouseoverSquare(square, piece){
-        if(currentPiece!="" && mouseDown && individualSquares){   
-            var index = indexAndCoordinates.coordinatesToIndex[square]
-            var targetIndex = index - indexAndCoordinates.coordinatesToIndex[currentPiecePosition]
-            var alreadyInMove = pieces[currentPiece].mov.indexOf(targetIndex)!=-1
-            if(targetIndex!=0){
-                if(alreadyInMove && !addingSquares){
-                    pieces[currentPiece].mov.splice(pieces[currentPiece].mov.indexOf(targetIndex),1)
-                    pieces[currentPiece].movdur.splice(pieces[currentPiece].mov.indexOf(targetIndex),1)
-                    if(mirror){
-                        pieces[currentPiece].mov.splice(pieces[currentPiece].mov.indexOf(-targetIndex),1)
-                        pieces[currentPiece].movdur.splice(pieces[currentPiece].mov.indexOf(-targetIndex),1)
-                    }
-                    htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
-                }
-                else if(!alreadyInMove && addingSquares){
-                    pieces[currentPiece].mov.push(targetIndex)
-                    pieces[currentPiece].movdur.push(1)
-                    if(mirror){
-                        pieces[currentPiece].mov.push(-targetIndex)
-                        pieces[currentPiece].movdur.push(1)
-                    }
-                    htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
-                    lastHighlightedSquare = currentPiece
-                }
-            }
         }
     }
 
