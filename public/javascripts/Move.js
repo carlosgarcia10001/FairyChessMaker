@@ -4,32 +4,51 @@ var piece = require('./Piece')
 var indexAndCoordinates = require('./IndexAndCoordinates')
 var mods = {
     ethereal: function(board, square, moveList){
-        var position = square
-        for(var i = 0; i < board[square].mov.length;i++){
-            var parsedSquare = position+board[square].mov[i]
-            var j = 0
-            while(boardState.validSquare(parsedSquare) && j < board[square].movdur[i]){
-                if(boardState.allySquare(board,square,parsedSquare)){ 
-                    if(pieceAttack.validAttack(board,square,parsedSquare)){
+        for(var i = 0; i < board[square].mov.paths.length;i++){
+            var parsedSquare = square + board[square].mov.paths[i][0]
+            for(var j = 0; j < board[square].mov.paths[i].length-1; j++){
+                var add = 1
+                if(board[square].mov.paths[i][j]<0){
+                    add = -1
+                }
+                for(var k = board[square].mov.paths[i][j]; Math.abs(k) < Math.abs(board[square].mov.paths[i][j+1]);k+=add){
+                    if(!boardState.validSquare(parsedSquare) || boardState.enemySquare(board, square, parsedSquare)){
+                        break
+                    }
+                    else if(boardState.allySquare(board, square, parsedSquare)){
+                        parsedSquare+=board[square].mov.attSpace[i][j]*add
+                        continue
+                    }
+                    if(moveList.indexOf(parsedSquare)==-1){
+                        moveList.push(parsedSquare)
+                    }
+                    parsedSquare+=board[square].mov.space[i][j]*add
+                }
+            }
+        }
+        for(var i = 0; i < board[square].mov.attPaths.length;i++){
+            var parsedSquare = square + board[square].mov.attPaths[i][0]
+            for(var j = 0; j < board[square].mov.attPaths[i].length-1; j++){
+                var add = 1
+                if(board[square].mov.paths[i][j]<0){
+                    add = -1
+                }
+                for(var k = board[square].mov.attPaths[i][j]; Math.abs(k) < Math.abs(board[square].mov.attPaths[i][j+1]);k+=add){
+                    if(boardState.validSquare(parsedSquare) && boardState.occupiedSquare(board,parsedSquare) && pieceAttack.validAttack(board,square,parsedSquare)){ 
                         if(moveList.indexOf(parsedSquare)==-1){
                             moveList.push(parsedSquare)
                         }
+                        if(boardState.allySquare(board,square, parsedSquare)){
+                            parsedSquare+=board[square].mov.attSpace[i][j]*add
+                            continue
+                        }
+                        break  
                     }
-                    j++
-                    parsedSquare+=board[square].mov[i]
-                    continue
-                }
-                else if(boardState.occupiedSquare(board, parsedSquare) && board[square].color!=board[parsedSquare].color){ 
-                    if(pieceAttack.validAttack(board,square,parsedSquare) && moveList.indexOf(parsedSquare)==-1){
-                        moveList.push(parsedSquare)
+                    else if(!boardState.validSquare(parsedSquare) || (boardState.occupiedSquare(board,parsedSquare) && !pieceAttack.validAttack(board,square,parsedSquare))){
+                        break
                     }
-                    break
+                    parsedSquare+=board[square].mov.attSpace[i][j]*add
                 }
-                else if(moveList.indexOf(parsedSquare)==-1){
-                    moveList.push(parsedSquare)
-                }
-                parsedSquare+=board[square].mov[i]
-                j++
             }
         }
     },
@@ -147,10 +166,45 @@ var pieceMoveList = function(board, square){
     else if(typeof(square)!='number'){
         return false
     }
-    var position = square
-    var movIsDmgMov = board[square].mov==board[square].dmgmov && board[square].movdur==board[square].dmgmovdur
     moveList = []
-    for(var i = 0; i < board[square].mov.length;i++){
+    for(var i = 0; i < board[square].mov.paths.length;i++){
+        var parsedSquare = square + board[square].mov.paths[i][0]
+        for(var j = 0; j < board[square].mov.paths[i].length-1; j++){
+            var add = 1
+            if(board[square].mov.paths[i][j]<0){
+                add = -1
+            }
+            for(var k = board[square].mov.paths[i][j]; Math.abs(k) < Math.abs(board[square].mov.paths[i][j+1]);k+=add){
+                if(!boardState.validSquare(parsedSquare) || boardState.occupiedSquare(board,parsedSquare)){
+                    break
+                }
+                if(moveList.indexOf(parsedSquare)==-1){
+                    moveList.push(parsedSquare)
+                }
+                parsedSquare+=board[square].mov.space[i][j]*add
+            }
+        }
+    }
+    for(var i = 0; i < board[square].mov.attPaths.length;i++){
+        var parsedSquare = square + board[square].mov.attPaths[i][0]
+        for(var j = 0; j < board[square].mov.attPaths[i].length-1; j++){
+            var add = 1
+            if(board[square].mov.paths[i][j]<0){
+                add = -1
+            }
+            for(var k = board[square].mov.attPaths[i][j]; Math.abs(k) < Math.abs(board[square].mov.attPaths[i][j+1]);k+=add){
+                if(boardState.validSquare(parsedSquare) && boardState.occupiedSquare(board,parsedSquare) && pieceAttack.validAttack(board,square,parsedSquare)){ 
+                    moveList.push(parsedSquare)
+                    break  
+                }
+                else if(!boardState.validSquare(parsedSquare) || (boardState.occupiedSquare(board,parsedSquare) && !pieceAttack.validAttack(board,square,parsedSquare))){
+                    break
+                }
+                parsedSquare+=board[square].mov.attSpace[i][j]*add
+            }
+        }
+    }
+    /*for(var i = 0; i < board[square].mov.length;i++){
         var parsedSquare = position+board[square].mov[i]
         var j = 0
         while(boardState.validSquare(parsedSquare) && j < board[square].movdur[i]){
@@ -187,7 +241,7 @@ var pieceMoveList = function(board, square){
                 j++
             }
         }
-    }
+    }*/
     parseMoveMods(board,square,moveList)
     return moveList
 }

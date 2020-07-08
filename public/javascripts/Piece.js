@@ -1,4 +1,4 @@
-function createPiece(id= " ", color = "", hp = 1, dmg = 1, mov = [], movdur = [], atttype = 'normal', attrmods = [], movmods = [], dmgmov = mov, dmgmovdur = movdur){
+function createPiece(id= " ", color = "", hp = 1, dmg = 1, mov = createMov(), atttype = 'normal', attrmods = [], movmods = []){
     var piece = {
         id: id,
         color: color,
@@ -6,15 +6,22 @@ function createPiece(id= " ", color = "", hp = 1, dmg = 1, mov = [], movdur = []
         dmg: dmg,
         atttype: atttype,
         mov: mov,
-        movdur: movdur,
         attrmods: attrmods,
         movmods: movmods,
-        dmgmov: dmgmov,
-        dmgmovdur: dmgmovdur
     }
     return piece
 }
-
+/*
+mov: [
+    {
+        relativepaths: [[1,8,119]]
+        relativespace: [[0,16]]
+        relativeattpaths: [[1,8,119]]
+        relativeattspace: [[0,16]]
+    }
+]
+}
+*/
 function createPieces(){
     var pieces = {}
         pieces['wK']=createPiece('k','w')
@@ -32,5 +39,16 @@ function createPieces(){
     return pieces
 }
 
+function createMov(paths = [], space = [], attPaths = [], attSpace = []){
+    return {
+        paths: paths,
+        space: space,
+        attPaths: attPaths,
+        attSpace: attSpace
+    }
+}
+
+
 exports.createPiece = createPiece
 exports.createPieces = createPieces
+exports.createMov = createMov

@@ -26,7 +26,7 @@ function pieceHasAttributeMod(board, square, mod){
 }
 
 function printBoard(board){
-    for(var i = 7; i >= 0; i--){
+    for(var i = 0; i < 8; i++){
         console.log("|"+board[0+i*16].id+"|"+board[1+i*16].id + "|" + board[2+i*16].id+"|"+board[3+i*16].id + "|" + board[4+i*16].id+"|"+board[5+i*16].id + "|" 
         + board[6+i*16].id+"|"+board[7+i*16].id + "|")
     }
