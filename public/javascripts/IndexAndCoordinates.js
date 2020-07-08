@@ -1,6 +1,6 @@
 var indexToCoordinates = {}
 var coordinatesToIndex = {}
-var mirrorSquares = {}
+
 function createIndexToCoordinatesAndCoordinatesToIndex(){
     let letter = 97
     let number = 8
@@ -17,7 +17,6 @@ function createIndexToCoordinatesAndCoordinatesToIndex(){
     }
     
 }
-
     createIndexToCoordinatesAndCoordinatesToIndex()
 if(typeof exports != 'undefined'){
     exports.indexToCoordinates=indexToCoordinates
