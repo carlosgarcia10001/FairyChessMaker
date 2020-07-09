@@ -169,39 +169,55 @@ var pieceMoveList = function(board, square){
     moveList = []
     for(var i = 0; i < board[square].mov.paths.length;i++){
         var parsedSquare = square + board[square].mov.paths[i][0]
+        var foundValidSquares = false
         for(var j = 0; j < board[square].mov.paths[i].length-1; j++){
             var add = 1
-            if(board[square].mov.paths[i][j]<0){
+            var space = board[square].mov.space[i][j]
+            if(board[square].mov.paths[i][j]>board[square].mov.paths[i][j+1]){
                 add = -1
             }
-            for(var k = board[square].mov.paths[i][j]; Math.abs(k) < Math.abs(board[square].mov.paths[i][j+1]);k+=add){
-                if(!boardState.validSquare(parsedSquare) || boardState.occupiedSquare(board,parsedSquare)){
+            for(var k = 0; k <= Math.abs(board[square].mov.paths[i][j+1]-board[square].mov.paths[i][j]);k+=space){
+                var validSquare = boardState.validSquare(parsedSquare)
+                var occupiedSquare = boardState.occupiedSquare(board,parsedSquare)
+                if(validSquare){
+                    foundValidSquares = true
+                }
+                if((foundValidSquares && !validSquare) || occupiedSquare){
                     break
                 }
-                if(moveList.indexOf(parsedSquare)==-1){
+                if(validSquare && moveList.indexOf(parsedSquare)==-1){
                     moveList.push(parsedSquare)
                 }
-                parsedSquare+=board[square].mov.space[i][j]*add
+                parsedSquare+=space*add
             }
+                parsedSquare-=space*add
         }
     }
     for(var i = 0; i < board[square].mov.attPaths.length;i++){
         var parsedSquare = square + board[square].mov.attPaths[i][0]
+        var foundValidSquares = false
         for(var j = 0; j < board[square].mov.attPaths[i].length-1; j++){
             var add = 1
+            var space = board[square].mov.attSpace[i][j]
             if(board[square].mov.attPaths[i][j]<0){
                 add = -1
             }
-            for(var k = board[square].mov.attPaths[i][j]; Math.abs(k) < Math.abs(board[square].mov.attPaths[i][j+1]);k+=add){
-                if(boardState.validSquare(parsedSquare) && boardState.occupiedSquare(board,parsedSquare) && pieceAttack.validAttack(board,square,parsedSquare)){ 
+            for(var k = 0; k < Math.abs(board[square].mov.attPaths[i][j+1]-board[square].mov.attPaths[i][j]);k+=space){
+                var validSquare = boardState.validSquare(parsedSquare)
+                var occupiedSquare = boardState.occupiedSquare(board,parsedSquare)
+                if(validSquare){
+                    foundValidSquares = true
+                }
+                if(pieceAttack.validAttack(board,square,parsedSquare)){ 
                     moveList.push(parsedSquare)
                     break  
                 }
-                else if(!boardState.validSquare(parsedSquare) || (boardState.occupiedSquare(board,parsedSquare) && !pieceAttack.validAttack(board,square,parsedSquare))){
+                else if((foundValidSquares && !validSquare) || (occupiedSquare && !pieceAttack.validAttack(board,square,parsedSquare))){
                     break
                 }
                 parsedSquare+=board[square].mov.attSpace[i][j]*add
             }
+                parsedSquare-=space*add
         }
     }
     /*for(var i = 0; i < board[square].mov.length;i++){
@@ -246,6 +262,14 @@ var pieceMoveList = function(board, square){
     return moveList
 }
 
+function moveListCoordinates(moveList){
+    var coordinates = []
+    for(var i = 0; i < moveList.length; i++){
+        coordinates.push(indexAndCoordinates.indexToCoordinates[moveList[i]])
+    }
+    return coordinates
+}
+
 function check(board, color){
     var enemyColor = 'w'
     if(color = 'w'){
@@ -267,7 +291,7 @@ var makeMove = function(parsedBoard, turn, initial, target, dummyMove = false){
     if(typeof(target)=='string'){
         target = indexAndCoordinates.coordinatesToIndex[target]
     }
-    if(typeof(target)=='undefined' || typeof(initial)=='undefined'){
+    if(typeof(target)!='number' || typeof(initial)!='number'){
         return false
     }
     if(dummyMove){ 
@@ -292,3 +316,4 @@ exports.check = check
 exports.makeMove = makeMove
 exports.pieceMoveList = pieceMoveList
 exports.masterMoveList = masterMoveList
+exports.moveListCoordinates = moveListCoordinates

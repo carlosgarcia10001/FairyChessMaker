@@ -16,17 +16,7 @@ function createPiece(id= " ", color = "", hp = 1, dmg = 1, mov = {
     }
     return piece
 }
-/*
-mov: [
-    {
-        relativepaths: [[1,8,119]]
-        relativespace: [[0,16]]
-        relativeattpaths: [[1,8,119]]
-        relativeattspace: [[0,16]]
-    }
-]
-}
-*/
+
 function createPieces(){
     var pieces = {}
         pieces['wK']=createPiece('k','w')

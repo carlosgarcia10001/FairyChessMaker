@@ -271,3 +271,17 @@ describe('GAME', function(){
     })
 })
 
+describe('MOVE', function(){
+    describe('Movement', function(){
+        it('Should work', function(){
+            var testBoard = new Array(128)
+            game.initializeBoard(testBoard)
+            let mov = piece.createMov([[-23,-9],[1,5]],[[1],[1]])
+            testBoard[DEFAULTPIECE1INDEX+31] = piece.createPiece('p','w',1,1, mov)
+            boardState.printBoard(testBoard)
+            console.log(" A B C D E F G H")
+            var moveList = move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX+31)
+            console.log(move.moveListCoordinates(moveList))
+        })
+    })
+})
