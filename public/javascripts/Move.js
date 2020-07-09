@@ -58,7 +58,7 @@ var mods = {
                         }
                         break  
                     }
-                    else if((validSquareFound && !validSquare) || (occupiedSquare && !pieceAttack.validAttack(board,square,parsedSquare))){
+                    else if((foundValidSquares && !validSquare) || (occupiedSquare && !pieceAttack.validAttack(board,square,parsedSquare))){
                         break
                     }
                     parsedSquare+=space*add
