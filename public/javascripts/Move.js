@@ -4,22 +4,25 @@ var piece = require('./Piece')
 var indexAndCoordinates = require('./IndexAndCoordinates')
 var mods = {
     ethereal: function(board, square, moveList){
+        loop1:
         for(var i = 0; i < board[square].mov.paths.length;i++){
             var parsedSquare = square + board[square].mov.paths[i][0]
             var foundValidSquares = false
+            loop2:
             for(var j = 0; j < board[square].mov.paths[i].length-1; j++){
                 var add = 1
                 var space = board[square].mov.space[i][j]
                 if(board[square].mov.paths[i][j]>board[square].mov.paths[i][j+1]){
                     add = -1
                 }
+                loop3:
                 for(var k = 0; k <= Math.abs(board[square].mov.paths[i][j+1]-board[square].mov.paths[i][j]);k+=space){
                     var validSquare = boardState.validSquare(parsedSquare)
                     if(validSquare){
                         foundValidSquares = true
                     }
                     if((foundValidSquares && !validSquare) || boardState.enemySquare(board, square, parsedSquare)){
-                        break
+                        break loop2
                     }
                     else if(boardState.allySquare(board, square, parsedSquare)){
                         parsedSquare+=space*add
@@ -33,15 +36,18 @@ var mods = {
                     parsedSquare-=space*add
             }
         }
+        loop1:
         for(var i = 0; i < board[square].mov.attPaths.length;i++){
             var parsedSquare = square + board[square].mov.attPaths[i][0]
             var foundValidSquares = false
+            loop2:
             for(var j = 0; j < board[square].mov.attPaths[i].length-1; j++){
                 var add = 1
                 var space = board[square].mov.attSpace[i][j]
                 if(board[square].mov.attPaths[i][j]>board[square].mov.attPaths[i][j+1]){
                     add = -1
                 }
+                loop3:
                 for(var k = 0; k <= Math.abs(board[square].mov.attPaths[i][j+1]-board[square].mov.attPaths[i][j]);k+=space){
                     var validSquare = boardState.validSquare(parsedSquare)
                     var occupiedSquare = boardState.occupiedSquare(board,parsedSquare)
@@ -56,10 +62,10 @@ var mods = {
                             parsedSquare+=space*add
                             continue
                         }
-                        break  
+                        break loop2
                     }
                     else if((foundValidSquares && !validSquare) || (occupiedSquare && !pieceAttack.validAttack(board,square,parsedSquare))){
-                        break
+                        break loop2
                     }
                     parsedSquare+=space*add
                 }
@@ -182,15 +188,18 @@ var pieceMoveList = function(board, square){
         return false
     }
     moveList = []
+    loop1:
     for(var i = 0; i < board[square].mov.paths.length;i++){
         var parsedSquare = square + board[square].mov.paths[i][0]
         var foundValidSquares = false
+        loop2:
         for(var j = 0; j < board[square].mov.paths[i].length-1; j++){
             var add = 1
             var space = board[square].mov.space[i][j]
             if(board[square].mov.paths[i][j]>board[square].mov.paths[i][j+1]){
                 add = -1
             }
+            loop3:
             for(var k = 0; k <= Math.abs(board[square].mov.paths[i][j+1]-board[square].mov.paths[i][j]);k+=space){
                 var validSquare = boardState.validSquare(parsedSquare)
                 var occupiedSquare = boardState.occupiedSquare(board,parsedSquare)
@@ -198,7 +207,7 @@ var pieceMoveList = function(board, square){
                     foundValidSquares = true
                 }
                 if((foundValidSquares && !validSquare) || occupiedSquare){
-                    break
+                    break loop2
                 }
                 if(validSquare && moveList.indexOf(parsedSquare)==-1){
                     moveList.push(parsedSquare)
@@ -208,15 +217,18 @@ var pieceMoveList = function(board, square){
                 parsedSquare-=space*add
         }
     }
+    loop1:
     for(var i = 0; i < board[square].mov.attPaths.length;i++){
         var parsedSquare = square + board[square].mov.attPaths[i][0]
         var foundValidSquares = false
+        loop2:
         for(var j = 0; j < board[square].mov.attPaths[i].length-1; j++){
             var add = 1
             var space = board[square].mov.attSpace[i][j]
             if(board[square].mov.attPaths[i][j]<0){
                 add = -1
             }
+            loop3:
             for(var k = 0; k <= Math.abs(board[square].mov.attPaths[i][j+1]-board[square].mov.attPaths[i][j]);k+=space){
                 var validSquare = boardState.validSquare(parsedSquare)
                 var occupiedSquare = boardState.occupiedSquare(board,parsedSquare)
@@ -225,10 +237,10 @@ var pieceMoveList = function(board, square){
                 }
                 if(pieceAttack.validAttack(board,square,parsedSquare)){ 
                     moveList.push(parsedSquare)
-                    break  
+                    break loop2
                 }
                 else if((foundValidSquares && !validSquare) || (occupiedSquare && !pieceAttack.validAttack(board,square,parsedSquare))){
-                    break
+                    break loop2
                 }
                 parsedSquare+=board[square].mov.attSpace[i][j]*add
             }
