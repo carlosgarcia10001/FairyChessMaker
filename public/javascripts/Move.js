@@ -202,7 +202,7 @@ var pieceMoveList = function(board, square){
             if(board[square].mov.attPaths[i][j]<0){
                 add = -1
             }
-            for(var k = 0; k < Math.abs(board[square].mov.attPaths[i][j+1]-board[square].mov.attPaths[i][j]);k+=space){
+            for(var k = 0; k <= Math.abs(board[square].mov.attPaths[i][j+1]-board[square].mov.attPaths[i][j]);k+=space){
                 var validSquare = boardState.validSquare(parsedSquare)
                 var occupiedSquare = boardState.occupiedSquare(board,parsedSquare)
                 if(validSquare){

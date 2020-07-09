@@ -5,11 +5,11 @@ var game = require('./Game')
 var board = new Array(128)
 var htmlBoardControl = require('./htmlBoardControl')
 var horizontalPathLeft = {
- path: [-1,-8],
+ path: [-1,-7],
  space: [1]
 }
 var horizontalPathRight = {
- path: [1,8],
+ path: [1,7],
  space: [1]
 }
 var verticalPathUp = {
@@ -37,22 +37,22 @@ var diagonalPathDownRight = {
     space: [17] 
 }
 
-var right = [1,2]
-var left = [-1,-2]
-var down = [16,17]
-var downRight = [17,18]
-var downLeft = [15,16]
-var up = [-16,-17]
-var upLeft = [-17,-18]
-var upRight = [-15,-16]
-var knightUpLeft1 = [-33,-34]
-var knightUpLeft2 = [-18,-19]
-var knightUpRight1 = [-31,-32]
-var knightUpRight2 = [-14,-15]
-var knightDownLeft1 = [14,15]
-var knightDownLeft2 = [31,32]
-var knightDownRight1 = [18,19]
-var knightDownRight2 = [33,34]
+var right = [1,1]
+var left = [-1,-1]
+var down = [16,16]
+var downRight = [17,17]
+var downLeft = [15,15]
+var up = [-16,-16]
+var upLeft = [-17,-17]
+var upRight = [-15,-15]
+var knightUpLeft1 = [-33,-33]
+var knightUpLeft2 = [-18,-18]
+var knightUpRight1 = [-31,-31]
+var knightUpRight2 = [-14,-14]
+var knightDownLeft1 = [14,14]
+var knightDownLeft2 = [31,31]
+var knightDownRight1 = [18,18]
+var knightDownRight2 = [33,33]
 
 game.initializeBoard(board)
 $(document).ready(function(){
