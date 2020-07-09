@@ -39,7 +39,7 @@ var mods = {
             for(var j = 0; j < board[square].mov.attPaths[i].length-1; j++){
                 var add = 1
                 var space = board[square].mov.attSpace[i][j]
-                if(board[square].mov.attPaths[i][j]<0){
+                if(board[square].mov.attPaths[i][j]>board[square].mov.attPaths[i][j+1]){
                     add = -1
                 }
                 for(var k = 0; k <= Math.abs(board[square].mov.attPaths[i][j+1]-board[square].mov.attPaths[i][j]);k+=space){
