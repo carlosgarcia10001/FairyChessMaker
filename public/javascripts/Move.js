@@ -6,49 +6,64 @@ var mods = {
     ethereal: function(board, square, moveList){
         for(var i = 0; i < board[square].mov.paths.length;i++){
             var parsedSquare = square + board[square].mov.paths[i][0]
+            var foundValidSquares = false
             for(var j = 0; j < board[square].mov.paths[i].length-1; j++){
                 var add = 1
-                if(board[square].mov.paths[i][j]<0){
+                var space = board[square].mov.space[i][j]
+                if(board[square].mov.paths[i][j]>board[square].mov.paths[i][j+1]){
                     add = -1
                 }
-                for(var k = board[square].mov.paths[i][j]; Math.abs(k) < Math.abs(board[square].mov.paths[i][j+1]);k+=add){
-                    if(!boardState.validSquare(parsedSquare) || boardState.enemySquare(board, square, parsedSquare)){
+                for(var k = 0; k <= Math.abs(board[square].mov.paths[i][j+1]-board[square].mov.paths[i][j]);k+=space){
+                    var validSquare = boardState.validSquare(parsedSquare)
+                    if(validSquare){
+                        foundValidSquares = true
+                    }
+                    if((foundValidSquares && !validSquare) || boardState.enemySquare(board, square, parsedSquare)){
                         break
                     }
                     else if(boardState.allySquare(board, square, parsedSquare)){
-                        parsedSquare+=board[square].mov.attSpace[i][j]*add
+                        parsedSquare+=space*add
                         continue
                     }
-                    if(moveList.indexOf(parsedSquare)==-1){
+                    if(validSquare && moveList.indexOf(parsedSquare)==-1){
                         moveList.push(parsedSquare)
                     }
-                    parsedSquare+=board[square].mov.space[i][j]*add
+                    parsedSquare+=space*add
                 }
+                    parsedSquare-=space*add
             }
         }
         for(var i = 0; i < board[square].mov.attPaths.length;i++){
             var parsedSquare = square + board[square].mov.attPaths[i][0]
+            var foundValidSquares = false
             for(var j = 0; j < board[square].mov.attPaths[i].length-1; j++){
                 var add = 1
-                if(board[square].mov.paths[i][j]<0){
+                var space = board[square].mov.attSpace[i][j]
+                if(board[square].mov.attPaths[i][j]<0){
                     add = -1
                 }
-                for(var k = board[square].mov.attPaths[i][j]; Math.abs(k) < Math.abs(board[square].mov.attPaths[i][j+1]);k+=add){
-                    if(boardState.validSquare(parsedSquare) && boardState.occupiedSquare(board,parsedSquare) && pieceAttack.validAttack(board,square,parsedSquare)){ 
+                for(var k = 0; k <= Math.abs(board[square].mov.attPaths[i][j+1]-board[square].mov.attPaths[i][j]);k+=space){
+                    var validSquare = boardState.validSquare(parsedSquare)
+                    var occupiedSquare = boardState.occupiedSquare(board,parsedSquare)
+                    if(validSquare){
+                        foundValidSquares = true
+                    }
+                    if(validSquare && pieceAttack.validAttack(board,square,parsedSquare)){ 
                         if(moveList.indexOf(parsedSquare)==-1){
                             moveList.push(parsedSquare)
                         }
                         if(boardState.allySquare(board,square, parsedSquare)){
-                            parsedSquare+=board[square].mov.attSpace[i][j]*add
+                            parsedSquare+=space*add
                             continue
                         }
                         break  
                     }
-                    else if(!boardState.validSquare(parsedSquare) || (boardState.occupiedSquare(board,parsedSquare) && !pieceAttack.validAttack(board,square,parsedSquare))){
+                    else if((validSquareFound && !validSquare) || (occupiedSquare && !pieceAttack.validAttack(board,square,parsedSquare))){
                         break
                     }
-                    parsedSquare+=board[square].mov.attSpace[i][j]*add
+                    parsedSquare+=space*add
                 }
+                    parsedSquare-=space*add
             }
         }
     },

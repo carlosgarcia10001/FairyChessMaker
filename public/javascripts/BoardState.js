@@ -6,7 +6,7 @@ function validSquare(square){
 }
 
 function emptySquare(board, square){
-    return board[square].color==""
+    return validSquare(square) && board[square].color==""
 }
 
 function occupiedSquare(board,square){
@@ -14,7 +14,7 @@ function occupiedSquare(board,square){
 }
 
 function allySquare(board, square, parsedSquare){
-    return board[square].color==board[parsedSquare].color
+    return occupiedSquare(board,parsedSquare) && board[square].color==board[parsedSquare].color
 }
 
 function enemySquare(board, square, parsedSquare){
