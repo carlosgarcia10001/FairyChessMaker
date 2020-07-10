@@ -171,6 +171,62 @@ $(document).ready(function(){
             htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
         }
     })
+    $("#customMovement").click(function(){
+        if(currentPiece!=""){
+            var coordinatePath = prompt("Please input the path you would like your piece to be able to move to by the start and end coordinates of each line in the path relative to the piece's current position, separated by commas.")
+            coordinatePath = coordinatePath.trim()
+            coordinatePath = coordinatePath.toLowerCase()
+            var coordinatePathArray = []
+            var coordinate = ""
+            while(coordinatePath!=""){
+                if((coordinatePath.charAt(0)>='a'&& coordinatePath.charAt(0) <= "h") || (coordinatePath.charAt(0) >='1' && coordinatePath.charAt(0) <= '9')){
+                    coordinate+=coordinatePath.charAt(0)
+                }
+                if(coordinate.length==2){
+                    coordinatePathArray.push(coordinate.toLowerCase())
+                    coordinate = ""
+                }              
+                coordinatePath = coordinatePath.substring(1)
+            }
+            var indexPath = []
+            var indexSpace = []
+            var undefined = false
+            console.log(coordinatePathArray)
+            for(var i = 0; i < coordinatePathArray.length;i++){
+                var index = indexAndCoordinates.coordinatesToIndex[coordinatePathArray[i]]-indexAndCoordinates.coordinatesToIndex[currentPiecePosition]
+                indexPath.push(index)
+            }
+            var space = prompt('Please input the space')
+            var spaceAmount = ""
+            while(space!=""){
+                if(space.charAt(0)<= "9" && space.charAt(0)>="0"){
+                    spaceAmount+=space.charAt(0)
+                }
+                if(space.charAt(0)==',' || (space.length==1 && spaceAmount.length!=0)){
+                    spaceAmount.trim()
+                    indexSpace.push(Number(spaceAmount))
+                    spaceAmount = ""
+                }
+                space = space.substring(1)
+            }
+            if(!undefined){
+                piece.addPath(pieces[currentPiece],indexPath,indexSpace)
+                htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            }
+            else{
+                alert("The input was invalid. Please try again with a valid input.")
+            }
+        }
+    })
+        $("#teleportMovement").click(function(){
+            if(currentPiece!=""){
+                var square = prompt("Input the coordinates of a square to teleport to")
+                square.trim()
+                square.toLowerCase()
+                pieces[currentPiece].movmods.push("teleport"+indexAndCoordinates.coordinatesToIndex[square])
+                htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            }
+        })
     var config = {
         sparePieces: true,
         onDragStart: onDragStart,
