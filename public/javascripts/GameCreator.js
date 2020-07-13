@@ -3,7 +3,7 @@ var indexAndCoordinates = require('./IndexAndCoordinates')
 var move = require('./Move')
 var game = require('./Game')
 var board = new Array(128)
-var htmlBoardControl = require('./htmlBoardControl')
+var htmlBoardControl = require('./HtmlBoardControl')
 var horizontalPathLeft = {
  path: [-1,-7],
  space: [1]

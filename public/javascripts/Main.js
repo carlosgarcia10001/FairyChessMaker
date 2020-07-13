@@ -9,7 +9,7 @@ const app = express()
 const port = 3000
 var testPath = path.join('node_modules','@chrisoakman','chessboardjs','dist')
 app.use(express.static("html"));
-//app.use(express.static(path.join('node_modules','@chrisoakman','chessboardjs','dist')))
+
 app.use(express.static(__dirname))
 app.get('/', (req, res) => {
     res.sendFile(__dirname+"/html/test.html")
