@@ -229,7 +229,6 @@ exports.parseFEN = parseFEN
 },{"./AttributeMods":1,"./BoardState":3,"./IndexAndCoordinates":7,"./Move":8,"./Piece":9}],5:[function(require,module,exports){
 var piece = require('./Piece')
 var indexAndCoordinates = require('./IndexAndCoordinates')
-var move = require('./Move')
 var game = require('./Game')
 var board = new Array(128)
 var htmlBoardControl = require('./HtmlBoardControl')
@@ -324,7 +323,13 @@ $(document).ready(function(){
         })
     })
     $("input[value='Submit']").click(function(){
-        $.post('/gamecreate',pieces)
+        var name = $("#name").val()
+        $.post("/gamecreate",{
+            name: name,
+            game: pieces
+        }).done(function(data){
+            window.location.assign(data)
+        })
     })
     $("#queenMovement").click(function(){
         if(currentPiece!=""){
@@ -513,7 +518,7 @@ $(document).ready(function(){
     var htmlBoard = Chessboard('myBoard',config)
     $(document).trigger('load')
 })
-},{"./Game":4,"./HtmlBoardControl":6,"./IndexAndCoordinates":7,"./Move":8,"./Piece":9}],6:[function(require,module,exports){
+},{"./Game":4,"./HtmlBoardControl":6,"./IndexAndCoordinates":7,"./Piece":9}],6:[function(require,module,exports){
 var move = require('./Move')
 var indexAndCoordinates = require('./IndexAndCoordinates')
 var highlightMove = '#a9a9a9'
@@ -758,8 +763,6 @@ function validBeaconTeleport(board, square, beaconIndex, offset){
 function parseMoveMods(board, square, moveList){
     for(let i = 0; i < board[square].movmods.length;i++){
         var mod = board[square].movmods[i]
-        console.log(mod)
-        console.log(mods)
         mods[mod](board, square, moveList)
     }
 }

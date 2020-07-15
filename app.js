@@ -9,6 +9,7 @@ var login = require('./routes/Login')
 var logout = require('./routes/Logout')
 var createAccount = require('./routes/CreateAccount')
 var session = require('express-session')
+var browse = require('./routes/Browse')
 var MongoDBStore = require('connect-mongodb-session')(session)
 var ejs = require('ejs')
 var fs = require('fs')
@@ -17,7 +18,7 @@ const port = 3000
 var url = "mongodb://localhost:27017/"
 var store = new MongoDBStore({
     uri: 'mongodb://localhost:27017/FairyChessMaker',
-    collection: 'Sessions'
+    collection: 'Sessions',
   });
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -32,7 +33,8 @@ app.use(session({ secret: 'asldkvhwdvhw', cookie: {
 }, 
 store: store,
 resave: true,
-saveUninitialized: true
+saveUninitialized: true,
+useUnifiedTopology: true
 }))
 
 app.use('/', login)
@@ -45,6 +47,7 @@ app.get('/ejs', (req, res) => {
         username: 'anon'
     })
 })
+app.use('/browse', browse)
 
 app.use(function(req, res, next) {
     next(createError(404));

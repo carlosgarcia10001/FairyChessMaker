@@ -1,6 +1,4 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-
-},{}],2:[function(require,module,exports){
 var boardState = require('./BoardState')
 var helper = require('./AttributeModsHelper')
 var mods ={
@@ -28,13 +26,13 @@ function parseMods(parsedBoard, parsedSquare, color){
 }
 exports.parseMods = parseMods
 exports.mods = mods
-},{"./AttributeModsHelper":3,"./BoardState":4}],3:[function(require,module,exports){
+},{"./AttributeModsHelper":2,"./BoardState":3}],2:[function(require,module,exports){
 function addMoveMod(board, square, mod){
     board[square].movmods.push(mod)
 }
 
 exports.addMoveMod = addMoveMod
-},{}],4:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 var indexToCoordinates = {}
 var coordinatesToIndex = {}
 var indexToValidIndex = {}
@@ -102,7 +100,7 @@ if(typeof exports != 'undefined'){
     exports.enemySquare = enemySquare
     exports.pieceHasAttributeMod = pieceHasAttributeMod
 }
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 function cleanPieces(pieces){
     var keys = Object.keys(pieces)
     for(var i = 0; i < keys.length;i++){
@@ -154,7 +152,7 @@ function cleanPiece(piece){
 
 exports.cleanPieces = cleanPieces
 exports.cleanPiece = cleanPiece
-},{}],6:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 var boardState  = require('./BoardState')
 var piece = require('./Piece')
 var move = require('./Move')
@@ -280,7 +278,7 @@ exports.checkMate = checkMate
 exports.boardHistory = boardHistory
 exports.createFEN = createFEN
 exports.parseFEN = parseFEN
-},{"./AttributeMods":2,"./BoardState":4,"./IndexAndCoordinates":7,"./Move":8,"./Piece":9}],7:[function(require,module,exports){
+},{"./AttributeMods":1,"./BoardState":3,"./IndexAndCoordinates":6,"./Move":7,"./Piece":8}],6:[function(require,module,exports){
 var indexToCoordinates = {}
 var coordinatesToIndex = {}
 
@@ -305,7 +303,7 @@ if(typeof exports != 'undefined'){
     exports.indexToCoordinates=indexToCoordinates
     exports.coordinatesToIndex=coordinatesToIndex
 }
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var boardState = require('./BoardState')
 var pieceAttack = require('./PieceAttack')
 var piece = require('./Piece')
@@ -466,8 +464,6 @@ function validBeaconTeleport(board, square, beaconIndex, offset){
 function parseMoveMods(board, square, moveList){
     for(let i = 0; i < board[square].movmods.length;i++){
         var mod = board[square].movmods[i]
-        console.log(mod)
-        console.log(mods)
         mods[mod](board, square, moveList)
     }
 }
@@ -655,7 +651,7 @@ exports.pieceMoveList = pieceMoveList
 exports.masterMoveList = masterMoveList
 exports.moveListCoordinates = moveListCoordinates
 
-},{"./BoardState":4,"./IndexAndCoordinates":7,"./Piece":9,"./PieceAttack":10}],9:[function(require,module,exports){
+},{"./BoardState":3,"./IndexAndCoordinates":6,"./Piece":8,"./PieceAttack":9}],8:[function(require,module,exports){
 function createPiece(id= " ", color = "", hp = 1, dmg = 1, mov = {
     paths: [],
     space: [],
@@ -724,7 +720,7 @@ exports.createPieces = createPieces
 exports.createMov = createMov
 exports.addPath = addPath
 exports.addAttPath = addAttPath
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 var boardState = require('./BoardState')
 var attackTypes = { 
     normal: function(board, initial, target){ 
@@ -747,17 +743,16 @@ function validAttack(board, square, target){
 
 exports.validAttack = validAttack
 exports.attackTypes = attackTypes
-},{"./BoardState":4}],11:[function(require,module,exports){
+},{"./BoardState":3}],10:[function(require,module,exports){
 var move = require('./Move')
-var fs = require('fs')
 var piece = require('./Piece')
-var indexAndCoordinates = require('./IndexAndCoordinates')
 var pieces = piece.createPieces()
 var cleanPieceFileRead = require('./CleanPieceFileRead')
 var game = require('./Game')
 var board = new Array(128)
 var htmlBoardControl = require('./htmlBoardControl')
 var boardState = require('./BoardState')
+
 game.initializeBoard(board)
 
 $(document).ready(function(){
@@ -766,13 +761,18 @@ $(document).ready(function(){
     $(document).on('load',function(){
         htmlSquares = htmlBoardControl.createHtmlSquares()
         locateHtmlSquares = htmlBoardControl.createLocateHtmlSquares(htmlSquares)
-        var pieceData = {"wK":{"id":"k","color":"w","hp":"1","dmg":"1","atttype":"normal","mov":{"paths":[[1,3,-30],[-1,-3,-35]],"space":[[1,16],[1,16]],"attPaths":[],"attSpace":[]},"attrmods":["beacon"]},"wQ":{"id":"q","color":"w","hp":"1","dmg":"1","atttype":"normal","mov":{"paths":[["-16","-112"],["16","112"],["-1","-7"],["1","7"],["-17","-119"],["-15","-117"],["15","117"],["17","119"]],"space":[["16"],["16"],["1"],["1"],["17"],["15"],["15"],["17"]],"attPaths":[["-16","-112"],["16","112"],["-1","-7"],["1","7"],["-17","-119"],["-15","-117"],["15","117"],["17","119"]],"attSpace":[["16"],["16"],["1"],["1"],["17"],["15"],["15"],["17"]]}},"wR":{"id":"r","color":"w","hp":"1","dmg":"1","atttype":"normal","mov":{"paths":[["-1","-7"],["1","7"],["-16","-112"],["16","112"]],"space":[["1"],["1"],["16"],["16"]],"attPaths":[["-1","-7"],["1","7"],["-16","-112"],["16","112"]],"attSpace":[["1"],["1"],["16"],["16"]]}},"wB":{"id":"b","color":"w","hp":"1","dmg":"1","atttype":"normal","mov":{"paths":[["-17","-119"],["-15","-117"],["15","117"],["17","119"]],"space":[["17"],["15"],["15"],["17"]],"attPaths":[["-17","-119"],["-15","-117"],["15","117"],["17","119"]],"attSpace":[["17"],["15"],["15"],["17"]]}},"wN":{"id":"n","color":"w","hp":"1","dmg":"1","atttype":"normal","mov":{"paths":[["-33","-33"],["-18","-18"],["-31","-31"],["-14","-14"],["14","14"],["31","31"],["18","18"],["33","33"]],"space":[["1"],["1"],["1"],["1"],["1"],["1"],["1"],["1"]],"attPaths":[["-33","-33"],["-18","-18"],["-31","-31"],["-14","-14"],["14","14"],["31","31"],["18","18"],["33","33"]],"attSpace":[["1"],["1"],["1"],["1"],["1"],["1"],["1"],["1"]]}},"wP":{"id":"p","color":"w","hp":"1","dmg":"1","atttype":"normal","mov":{"paths":[["-16","-16"]],"space":[["1"]],"attPaths":[["-17","-17"],["-15","-15"]],"attSpace":[["1"],["1"]]}},"bK":{"id":"K","color":"b","hp":"1","dmg":"1","atttype":"normal","mov":{"paths":[["1","1"],["-1","-1"],["16","16"],["17","17"],["15","15"],["-16","-16"],["-17","-17"],["-15","-15"]],"space":[["1"],["1"],["1"],["1"],["1"],["1"],["1"],["1"]],"attPaths":[["1","1"],["-1","-1"],["16","16"],["17","17"],["15","15"],["-16","-16"],["-17","-17"],["-15","-15"]],"attSpace":[["1"],["1"],["1"],["1"],["1"],["1"],["1"],["1"]]}},"bQ":{"id":"Q","color":"b","hp":"1","dmg":"1","atttype":"normal","mov":{"paths":[["-16","-112"],["16","112"],["-1","-7"],["1","7"],["-17","-119"],["-15","-117"],["15","117"],["17","119"]],"space":[["16"],["16"],["1"],["1"],["17"],["15"],["15"],["17"]],"attPaths":[["-16","-112"],["16","112"],["-1","-7"],["1","7"],["-17","-119"],["-15","-117"],["15","117"],["17","119"]],"attSpace":[["16"],["16"],["1"],["1"],["17"],["15"],["15"],["17"]]}},"bR":{"id":"R","color":"b","hp":"1","dmg":"1","atttype":"normal","mov":{"paths":[["-1","-7"],["1","7"],["-16","-112"],["16","112"]],"space":[["1"],["1"],["16"],["16"]],"attPaths":[["-1","-7"],["1","7"],["-16","-112"],["16","112"]],"attSpace":[["1"],["1"],["16"],["16"]]}},"bB":{"id":"B","color":"b","hp":"1","dmg":"1","atttype":"normal","mov":{"paths":[["-17","-119"],["-15","-117"],["15","117"],["17","119"]],"space":[["17"],["15"],["15"],["17"]],"attPaths":[["-17","-119"],["-15","-117"],["15","117"],["17","119"]],"attSpace":[["17"],["15"],["15"],["17"]]}},"bN":{"id":"N","color":"b","hp":"1","dmg":"1","atttype":"normal","mov":{"paths":[["-33","-33"],["-18","-18"],["-31","-31"],["-14","-14"],["14","14"],["31","31"],["18","18"],["33","33"]],"space":[["1"],["1"],["1"],["1"],["1"],["1"],["1"],["1"]],"attPaths":[["-33","-33"],["-18","-18"],["-31","-31"],["-14","-14"],["14","14"],["31","31"],["18","18"],["33","33"]],"attSpace":[["1"],["1"],["1"],["1"],["1"],["1"],["1"],["1"]]}},"bP":{"id":"P","color":"b","hp":"1","dmg":"1","atttype":"normal","mov":{"paths":[["16","16"]],"space":[["1"]],"attPaths":[["15","15"],["17","17"]],"attSpace":[["1"],["1"]]}}}
-        pieces = pieceData
-        cleanPieceFileRead.cleanPieces(pieces)
-        pieces['wP'].movmods.push('teleportToBeacon')
-        pieces['bR'].atttype = 'friendlyfire'
-        console.log(pieces)
-        game.parseFEN(board, 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR', pieces)
+        var matchId = window.location.pathname.substring(6)
+        $.post('/play',
+        {
+            id: matchId 
+        }).done(function(data) {
+            pieces = JSON.parse(data)
+            if(data == "/browse"){
+                window.location.assign(data)
+            }
+            cleanPieceFileRead.cleanPieces(pieces)
+            game.parseFEN(board, 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR', pieces)
+        })
     })
     
     var config = {
@@ -803,7 +803,7 @@ $(document).ready(function(){
     var htmlBoard = Chessboard('myBoard',config)
     $(document).trigger('load')
 })
-},{"./BoardState":4,"./CleanPieceFileRead":5,"./Game":6,"./IndexAndCoordinates":7,"./Move":8,"./Piece":9,"./htmlBoardControl":12,"fs":1}],12:[function(require,module,exports){
+},{"./BoardState":3,"./CleanPieceFileRead":4,"./Game":5,"./Move":7,"./Piece":8,"./htmlBoardControl":11}],11:[function(require,module,exports){
 var move = require('./Move')
 var indexAndCoordinates = require('./IndexAndCoordinates')
 var highlightMove = '#a9a9a9'
@@ -862,4 +862,4 @@ exports.updateHighlightedMoves = updateHighlightedMoves
 exports.highlightValidMoves = highlightValidMoves
 exports.unHighlightValidMoves = unHighlightValidMoves
 
-},{"./IndexAndCoordinates":7,"./Move":8}]},{},[11]);
+},{"./IndexAndCoordinates":6,"./Move":7}]},{},[10]);

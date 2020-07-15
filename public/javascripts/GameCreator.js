@@ -1,6 +1,5 @@
 var piece = require('./Piece')
 var indexAndCoordinates = require('./IndexAndCoordinates')
-var move = require('./Move')
 var game = require('./Game')
 var board = new Array(128)
 var htmlBoardControl = require('./HtmlBoardControl')
@@ -95,7 +94,13 @@ $(document).ready(function(){
         })
     })
     $("input[value='Submit']").click(function(){
-        $.post('/gamecreate',pieces)
+        var name = $("#name").val()
+        $.post("/gamecreate",{
+            name: name,
+            game: pieces
+        }).done(function(data){
+            window.location.assign(data)
+        })
     })
     $("#queenMovement").click(function(){
         if(currentPiece!=""){

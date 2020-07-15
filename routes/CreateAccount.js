@@ -16,7 +16,7 @@ router.post('/', (req,res) => {
     var message = 'Account creation successful'
     var salt = bcrypt.genSaltSync(10)
     var hashedPassword = bcrypt.hashSync(password, salt)
-    var redirection = "/"
+    var redirection = "/play"
     MongoClient.connect(url, function(err, db) {
         if (err) throw err;
         console.log("Database conneceted")
@@ -36,9 +36,9 @@ router.post('/', (req,res) => {
             redirection = '/createaccount'
         }
         db.close();
+        res.redirect(redirection)
         })
       });
-      res.redirect(redirection)
 })
 
 module.exports = router
