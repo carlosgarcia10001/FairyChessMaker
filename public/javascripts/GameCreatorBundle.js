@@ -324,7 +324,7 @@ $(document).ready(function(){
         })
     })
     $("input[value='Submit']").click(function(){
-        $.post('/',pieces)
+        $.post('/gamecreate',pieces)
     })
     $("#queenMovement").click(function(){
         if(currentPiece!=""){
