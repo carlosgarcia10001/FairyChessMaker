@@ -19,18 +19,18 @@ function createPiece(id= " ", color = "", hp = 1, dmg = 1, mov = {
 
 function createPieces(){
     var pieces = {}
-        pieces['wK']=createPiece('k','w')
-        pieces['wQ']=createPiece('q','w')
-        pieces['wR']=createPiece('r','w')
-        pieces['wB']=createPiece('b','w')
-        pieces['wN']=createPiece('n','w')
-        pieces['wP']=createPiece('p','w')
-        pieces['bK']=createPiece('K','b')
-        pieces['bQ']=createPiece('Q','b')
-        pieces['bR']=createPiece('R','b')
-        pieces['bB']=createPiece('B','b')
-        pieces['bN']=createPiece('N','b')
-        pieces['bP']=createPiece('P','b')
+        pieces['wK']=createPiece('K','w')
+        pieces['wQ']=createPiece('Q','w')
+        pieces['wR']=createPiece('R','w')
+        pieces['wB']=createPiece('B','w')
+        pieces['wN']=createPiece('N','w')
+        pieces['wP']=createPiece('P','w')
+        pieces['bK']=createPiece('k','b')
+        pieces['bQ']=createPiece('q','b')
+        pieces['bR']=createPiece('r','b')
+        pieces['bB']=createPiece('b','b')
+        pieces['bN']=createPiece('n','b')
+        pieces['bP']=createPiece('p','b')
     return pieces
 }
 

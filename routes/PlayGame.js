@@ -20,7 +20,6 @@ router.post('/', function (req, res){
     async function getMatch(){
         var client = await MongoClient.connect(url)
         var result = await client.db('FairyChessMaker').collection('Matches').findOne(ObjectId(req.body.id))
-        console.log(result)
         if(result == null){
             res.send('/browse')
             client.close()
@@ -32,7 +31,6 @@ router.post('/', function (req, res){
         }
     }
     if(req.body.id !=""){
-        console.log(req.body.id)
         getMatch()   
     }
     else{

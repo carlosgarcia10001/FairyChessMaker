@@ -13,13 +13,14 @@ var browse = require('./routes/Browse')
 var MongoDBStore = require('connect-mongodb-session')(session)
 var ejs = require('ejs')
 var fs = require('fs')
+var sockets = require("./sockets")
 const app = express()
 const port = 3000
 var url = "mongodb://localhost:27017/"
 var store = new MongoDBStore({
     uri: 'mongodb://localhost:27017/FairyChessMaker',
     collection: 'Sessions',
-  });
+   });
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({parameterLimit: 5000,extended: true }))
@@ -34,9 +35,7 @@ app.use(session({ secret: 'asldkvhwdvhw', cookie: {
 store: store,
 resave: true,
 saveUninitialized: true,
-useUnifiedTopology: true
 }))
-
 app.use('/', login)
 app.use('/play', playGame)
 app.use('/gamecreate', gameCreator)
@@ -64,4 +63,12 @@ app.use(function(err, req, res, next) {
     res.render('error');
   });
 
-app.listen(port, () => console.log("app running"))
+  
+var server = app.listen(port, () => console.log("app running"))
+
+server.on('upgrade', function upgrade(request, socket, head) {
+  var play = sockets.createPlaySocket()
+  play.handleUpgrade(request, socket, head, function(ws){
+    play.emit('connection', ws, request)
+  })
+})
