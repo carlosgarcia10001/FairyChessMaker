@@ -23,12 +23,14 @@ router.post('/', (req,res) => {
         db.db('FairyChessMaker').collection("Users").findOne({'username': username}, function(err,result){
             if (err) throw err;
         if(result == null){
-            db.db('FairyChessMaker').collection("Users").insertOne({
+            var user = db.db('FairyChessMaker').collection("Users").insertOne({
                 'username': username,
                 'password': hashedPassword
+            }).then((response) => {
+                console.log('user added')
+                req.session.userId = String(response.insertedId)
+                console.log(response.insertedId)
             })
-            console.log('user added')
-            req.session.user = username
         }
         else{
             console.log('user creation failed')

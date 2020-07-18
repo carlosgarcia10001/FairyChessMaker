@@ -111,6 +111,14 @@ function cleanPieces(pieces){
 function cleanPiece(piece){
     piece.hp = Number(piece.hp)
     piece.dmg = Number(piece.dmg)
+    if(!piece.mov){
+        piece.mov = {
+            paths: [],
+            space: [], 
+            attPaths: [],
+            attSpace: []
+        }
+    }
     var mov = {
         paths: [],
         space: [],
@@ -218,12 +226,12 @@ function createFEN(parsedBoard){
 function parseFEN(parsedBoard, parsedFEN, parsedPieces){
     var FENcopy = parsedFEN.substring(0)
     let letter = 97
-    let number = 1
+    let number = 8
     var keys = Object.keys(parsedPieces)
     while(FENcopy != ''){
         if(FENcopy.startsWith('/')){
             letter = 97
-            number++
+            number--
         }
         else if(!isNaN(Number(FENcopy.charAt(0)))){
             var count = Number(FENcopy.charAt(0))
@@ -673,18 +681,18 @@ function createPiece(id= " ", color = "", hp = 1, dmg = 1, mov = {
 
 function createPieces(){
     var pieces = {}
-        pieces['wK']=createPiece('k','w')
-        pieces['wQ']=createPiece('q','w')
-        pieces['wR']=createPiece('r','w')
-        pieces['wB']=createPiece('b','w')
-        pieces['wN']=createPiece('n','w')
-        pieces['wP']=createPiece('p','w')
-        pieces['bK']=createPiece('K','b')
-        pieces['bQ']=createPiece('Q','b')
-        pieces['bR']=createPiece('R','b')
-        pieces['bB']=createPiece('B','b')
-        pieces['bN']=createPiece('N','b')
-        pieces['bP']=createPiece('P','b')
+        pieces['wK']=createPiece('K','w')
+        pieces['wQ']=createPiece('Q','w')
+        pieces['wR']=createPiece('R','w')
+        pieces['wB']=createPiece('B','w')
+        pieces['wN']=createPiece('N','w')
+        pieces['wP']=createPiece('P','w')
+        pieces['bK']=createPiece('k','b')
+        pieces['bQ']=createPiece('q','b')
+        pieces['bR']=createPiece('r','b')
+        pieces['bB']=createPiece('b','b')
+        pieces['bN']=createPiece('n','b')
+        pieces['bP']=createPiece('p','b')
     return pieces
 }
 
@@ -764,23 +772,20 @@ $(document).ready(function(){
         locateHtmlSquares = htmlBoardControl.createLocateHtmlSquares(htmlSquares)
         var matchId = window.location.pathname.substring(6)  
 
-        socket.addEventListener('open', function (event) {
-            console.log('matchId sent')                
+        socket.addEventListener('open', function (event) {               
             socket.send(JSON.stringify({id: matchId}));
         });
 
         socket.addEventListener('message', function (message) {
             var data = message.data
-            console.log(data)
             if(data.charAt(0)=='{'){ //A JSON would imply that the game is being setup or is being updated based on the opposing player's moves
                 data = JSON.parse(message.data)
                 if(data.FEN){
                     FEN = data.FEN
                 }
-                if(data.pieces){
-                    pieces = data.pieces
+                if(data.Game){
+                    pieces = data.Game
                 }
-                console.log(pieces)
                 cleanPieceFileRead.cleanPieces(pieces)
                 game.parseFEN(board, FEN, pieces)
                 console.log(FEN)
@@ -814,6 +819,7 @@ $(document).ready(function(){
     function onDrop(source, target, piece){
         var movement = move.makeMove(board, 'w', source, target)
         socket.send(movement)
+        console.log(pieces)
         boardState.printBoard(board)
         if(movement == false){
             return 'snapback'

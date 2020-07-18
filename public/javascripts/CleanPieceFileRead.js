@@ -8,6 +8,14 @@ function cleanPieces(pieces){
 function cleanPiece(piece){
     piece.hp = Number(piece.hp)
     piece.dmg = Number(piece.dmg)
+    if(!piece.mov){
+        piece.mov = {
+            paths: [],
+            space: [], 
+            attPaths: [],
+            attSpace: []
+        }
+    }
     var mov = {
         paths: [],
         space: [],

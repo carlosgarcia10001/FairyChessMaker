@@ -21,6 +21,15 @@ var store = new MongoDBStore({
     uri: 'mongodb://localhost:27017/FairyChessMaker',
     collection: 'Sessions',
    });
+   var sessionParser = session({ secret: 'asldkvhwdvhw', cookie: { 
+    maxAge: 1000 * 60 * 60 * 24 * 100,
+    httpOnly: true,
+    }, 
+    store: store,
+    resave: true,
+    saveUninitialized: false,
+    })
+
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({parameterLimit: 5000,extended: true }))
@@ -28,14 +37,7 @@ app.use(bodyParser.json())
 app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'views')))
 app.use(cookieParser());
-app.use(session({ secret: 'asldkvhwdvhw', cookie: { 
-    maxAge: 1000 * 60 * 60 * 24 * 100,
-    httpOnly: true,
-}, 
-store: store,
-resave: true,
-saveUninitialized: true,
-}))
+app.use(sessionParser)
 app.use('/', login)
 app.use('/play', playGame)
 app.use('/gamecreate', gameCreator)
@@ -67,7 +69,7 @@ app.use(function(err, req, res, next) {
 var server = app.listen(port, () => console.log("app running"))
 
 server.on('upgrade', function upgrade(request, socket, head) {
-  var play = sockets.createPlaySocket()
+  var play = sockets.createPlaySocket(sessionParser)
   play.handleUpgrade(request, socket, head, function(ws){
     play.emit('connection', ws, request)
   })

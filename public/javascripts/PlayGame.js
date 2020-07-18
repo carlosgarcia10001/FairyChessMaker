@@ -18,23 +18,20 @@ $(document).ready(function(){
         locateHtmlSquares = htmlBoardControl.createLocateHtmlSquares(htmlSquares)
         var matchId = window.location.pathname.substring(6)  
 
-        socket.addEventListener('open', function (event) {
-            console.log('matchId sent')                
+        socket.addEventListener('open', function (event) {               
             socket.send(JSON.stringify({id: matchId}));
         });
 
         socket.addEventListener('message', function (message) {
             var data = message.data
-            console.log(data)
             if(data.charAt(0)=='{'){ //A JSON would imply that the game is being setup or is being updated based on the opposing player's moves
                 data = JSON.parse(message.data)
                 if(data.FEN){
                     FEN = data.FEN
                 }
-                if(data.pieces){
-                    pieces = data.pieces
+                if(data.Game){
+                    pieces = data.Game
                 }
-                console.log(pieces)
                 cleanPieceFileRead.cleanPieces(pieces)
                 game.parseFEN(board, FEN, pieces)
                 console.log(FEN)
@@ -68,6 +65,7 @@ $(document).ready(function(){
     function onDrop(source, target, piece){
         var movement = move.makeMove(board, 'w', source, target)
         socket.send(movement)
+        console.log(pieces)
         boardState.printBoard(board)
         if(movement == false){
             return 'snapback'

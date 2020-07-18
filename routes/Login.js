@@ -26,24 +26,20 @@ router.post('/', (req,res) => {
         if(result == null){
             console.log("Incorrect username")
             redirection = '/'
-            req.session.logingResponse = messageFail
         }
         else{
             var validPassword = bcrypt.compareSync(password, result.password) && username!=""
             if(validPassword){
                 console.log('Successful login')
-                req.session.loginResponse = messageSuccess
-                req.session.user = username
+                req.session.userId = String(result._id)
             }
             else{
-                console.log("Incorrect password")
-                console.log('login failed')
-                req.session.loginResponse = messageFail
+                console.log('Login Failed')
                 redirection = '/'
             }
         }
             db.close();
-            console.log(req.session.user)
+            console.log(req.session.userId)
             res.redirect(redirection)
         })
       });
