@@ -1,4 +1,9 @@
-function createPiece(id= " ", color = "", hp = 1, dmg = 1, mov = [], movdur = [], atttype = 'normal', attrmods = [], movmods = [], dmgmov = mov, dmgmovdur = movdur){
+function createPiece(id= " ", color = "", hp = 1, dmg = 1, mov = {
+    paths: [],
+    space: [],
+    attPaths: [],
+    attSpace: []
+}, atttype = 'normal', attrmods = [], movmods = []){
     var piece = {
         id: id,
         color: color,
@@ -6,31 +11,58 @@ function createPiece(id= " ", color = "", hp = 1, dmg = 1, mov = [], movdur = []
         dmg: dmg,
         atttype: atttype,
         mov: mov,
-        movdur: movdur,
         attrmods: attrmods,
         movmods: movmods,
-        dmgmov: dmgmov,
-        dmgmovdur: dmgmovdur
     }
     return piece
 }
 
 function createPieces(){
     var pieces = {}
-        pieces['wK']=createPiece('k','w')
-        pieces['wQ']=createPiece('q','w')
-        pieces['wR']=createPiece('r','w')
-        pieces['wB']=createPiece('b','w')
-        pieces['wN']=createPiece('n','w')
-        pieces['wP']=createPiece('p','w')
-        pieces['bK']=createPiece('K','b')
-        pieces['bQ']=createPiece('Q','b')
-        pieces['bR']=createPiece('R','b')
-        pieces['bB']=createPiece('B','b')
-        pieces['bN']=createPiece('N','b')
-        pieces['bP']=createPiece('P','b')
+        pieces['wK']=createPiece('K','w')
+        pieces['wQ']=createPiece('Q','w')
+        pieces['wR']=createPiece('R','w')
+        pieces['wB']=createPiece('B','w')
+        pieces['wN']=createPiece('N','w')
+        pieces['wP']=createPiece('P','w')
+        pieces['bK']=createPiece('k','b')
+        pieces['bQ']=createPiece('q','b')
+        pieces['bR']=createPiece('r','b')
+        pieces['bB']=createPiece('b','b')
+        pieces['bN']=createPiece('n','b')
+        pieces['bP']=createPiece('p','b')
     return pieces
+}
+
+function createMov(paths = [], space = [], attPaths = paths, attSpace = space){
+    return {
+        paths: paths,
+        space: space,
+        attPaths: attPaths,
+        attSpace: attSpace
+    }
+}
+
+function addPath(piece, path,space, attPathsEqualsPaths = true){
+    if(piece.mov.paths.indexOf(path)==-1){    
+        piece.mov.paths.push(path)
+        piece.mov.space.push(space)
+    }
+    if(attPathsEqualsPaths && piece.mov.attPaths.indexOf(path)==-1){
+        piece.mov.attPaths.push(path)
+        piece.mov.attSpace.push(space)
+    }
+}
+
+function addAttPath(piece,path,space){
+    if(piece.mov.attPaths.indexOf(path)==-1){
+        piece.mov.attPaths.push(path)
+        piece.mov.attSpace.push(space)
+    }
 }
 
 exports.createPiece = createPiece
 exports.createPieces = createPieces
+exports.createMov = createMov
+exports.addPath = addPath
+exports.addAttPath = addAttPath

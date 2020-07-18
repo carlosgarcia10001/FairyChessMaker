@@ -1,15 +1,20 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <%- include('partials/Header', {user: user}) %>
         <link rel="stylesheet" href="../stylesheets/chessboard-1.0.0.min.css">
         </head>
     <body>
         <div id="myBoard" style="width: 400px"></div>
-        <div id="squareSelection">
-            <input type="checkbox" name='mirror' value = 'mirrored'/>Mirrored
-            <h1>Square Selection</h1>
-            <input type = "radio" name = "squareSelection" value = "sectioned" checked/>Sectioned
-            <input type = "radio" name = "squareSelection" value = "individual"/>Individual
+        <div id="movement">
+            <button type="button" id = 'kingMovement'>Add King Movement</button>
+            <button type="button" id = 'queenMovement'>Add Queen Movement</button>
+            <button type="button" id = 'bishopMovement'>Add Bishop Movement</button>
+            <button type="button" id = 'knightMovement'>Add Knight Movement</button>
+            <button type="button" id = 'rookMovement'>Add Rook Movement</button>
+            <button type="button" id = 'pawnMovement'>Add Pawn Movement</button>
+            <button type="button" id = 'customMovement'>Add Custom Movement</button>
+            <button type="button" id = 'teleportMovement'>Add Teleportation</button>
         </div>
         <div id = "Attack Type">
             <h1>Attack Type</h1>
@@ -25,9 +30,8 @@
             <input type = "checkbox" name = "attrmods" value = "beacon"/>Beacon
             <input type = "checkbox" name = "attrmods" value = "kingly"/>Kingly
         </div>
+        <input id = 'name'type = "text" name = "Name">
         <input type = "submit" value = "Submit"/>
-    
-        
         <script src = "../javascripts/jquery.min.js"></script>
         <script src = "../javascripts/chessboard-1.0.0.min.js"></script>
         <script src = "../javascripts/GameCreatorBundle.js"></script>

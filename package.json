@@ -7,17 +7,32 @@
     "test": "test"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "start": "node app.js",
+    "build_PlayGame": "Browserify public/javascripts/PlayGame.js > public/javascripts/PlayGameBundle.js",
+    "build_GameCreator": "Browserify public/javascripts/GameCreator.js > public/javascripts/GameCreatorBundle.js",
+    "prestart": "Browserify public/javascripts/PlayGame.js > public/javascripts/PlayGameBundle.js && Browserify public/javascripts/GameCreator.js > public/javascripts/GameCreatorBundle.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@chrisoakman/chessboardjs": "^1.0.0",
+    "bcrypt": "^5.0.0",
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "browserify": "^16.5.1",
     "chai": "^4.2.0",
+    "connect-mongodb-session": "^2.3.3",
+    "cookie": "^0.4.1",
+    "cookie-parser": "^1.4.5",
+    "ejs": "^3.1.3",
     "express": "^4.17.1",
+    "express-session": "^1.17.1",
     "mocha": "^8.0.1",
-    "watchify": "^3.11.1"
+    "mongodb": "^3.5.9",
+    "passport-local": "^1.0.0",
+    "request": "^2.88.2",
+    "watchify": "^3.11.1",
+    "ws": "^7.3.1"
   }
 }

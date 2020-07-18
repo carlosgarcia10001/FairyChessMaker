@@ -63,12 +63,12 @@ function createFEN(parsedBoard){
 function parseFEN(parsedBoard, parsedFEN, parsedPieces){
     var FENcopy = parsedFEN.substring(0)
     let letter = 97
-    let number = 1
+    let number = 8
     var keys = Object.keys(parsedPieces)
     while(FENcopy != ''){
         if(FENcopy.startsWith('/')){
             letter = 97
-            number++
+            number--
         }
         else if(!isNaN(Number(FENcopy.charAt(0)))){
             var count = Number(FENcopy.charAt(0))

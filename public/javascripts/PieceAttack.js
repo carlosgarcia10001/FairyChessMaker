@@ -15,7 +15,7 @@ var attackTypes = {
 }
 
 function validAttack(board, square, target){
-    return attackTypes[board[square].atttype](board, square, target)
+    return boardState.occupiedSquare(board, target) && attackTypes[board[square].atttype](board, square, target)
 }
 
 exports.validAttack = validAttack

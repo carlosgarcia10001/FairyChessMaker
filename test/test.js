@@ -10,7 +10,9 @@ function equalArray(arr1,arr2){
         return false
     }
     for(var i = 0; i < arr1.length; i++){
-        if(arr1[i]!=arr2[i]){
+        var arr1Sorted = arr1.concat().sort()
+        var arr2Sorted = arr2.concat().sort()
+        if(arr1Sorted[i]!=arr2Sorted[i]){
             return false
         }
     }
@@ -23,8 +25,20 @@ const DEFAULTPIECE3INDEX = 32
 function setupTestBoard(){
     game.initializeBoard(board)
     var testBoard = board.slice()
-    var piece1 = piece.createPiece('p','w',1,1,[1,-1,-16,16],[8,8,8,8])
-    var piece2 = piece.createPiece('B','b',1,1,[1],[8])
+    var piece1 = piece.createPiece('p','w',1,1,
+        {
+            paths: [[1,8],[-1,-8],[16,112],[-16,-112]],
+            space: [[1],[1],[16],[16]],
+            attPaths: [[1,8],[-1,-8],[16,112],[-16,-112]],
+            attSpace: [[1],[1],[16],[16]]
+        }
+    )
+    var piece2 = piece.createPiece('B','b',1,1,{
+        paths: [[1,8]],
+        space: [[1]],
+        attPaths: [[1,8]],
+        attSpace: [[1]]
+    })
     var piece3 = piece.createPiece('A','b',1,1)
     var piece4 = piece.createPiece('d', 'w',1,1)
     var piece5 = piece.createPiece('C', 'b', 1, 1)
@@ -43,7 +57,7 @@ describe('Piece', function () {
         testBoard[DEFAULTPIECE1INDEX].atttype = 'pacifist'
         boardState.printBoard(testBoard)
         console.log(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX))
-        assert.isTrue(equalArray(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX),[35, 33, 18, 50]))
+        assert.isTrue(equalArray(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX),[35, 33, 50, 18]))
     });
   });
   describe('Normal', function() {
@@ -51,7 +65,7 @@ describe('Piece', function () {
         let testBoard = setupTestBoard()
         boardState.printBoard(testBoard)
         console.log(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX))
-        assert.isTrue(equalArray(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX), [35, 36, 33, 32, 18, 50, 66]))
+        assert.isTrue(equalArray(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX), [35, 33, 50, 18, 36, 32, 66]))
     });
   });
   describe('FriendlyFire', function(){
@@ -60,7 +74,7 @@ describe('Piece', function () {
         testBoard[DEFAULTPIECE1INDEX].atttype = 'friendlyfire'
         boardState.printBoard(testBoard)
         console.log(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX))
-        assert.isTrue(equalArray(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX), [35, 36, 33, 32, 18, 2, 50, 66]))
+        assert.isTrue(equalArray(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX), [35, 33, 50, 18, 36, 32, 66,  2]))
       })
   })
   describe('Traitor', function(){
@@ -69,7 +83,7 @@ describe('Piece', function () {
         testBoard[DEFAULTPIECE1INDEX].atttype = 'traitor'
         boardState.printBoard(testBoard)
         console.log(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX))
-        assert.isTrue(equalArray(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX), [35, 33, 18, 2, 50]))
+        assert.isTrue(equalArray(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX), [35, 33, 50, 18, 2]))
       })
   })
 });
@@ -129,12 +143,12 @@ describe('Mods', function(){
     describe('Beacon',function(){
         it('Should return true if ally pieces can move near it', function(){
             let testBoard = setupTestBoard()
-            game.placePieceOnBoard(testBoard,piece.createPiece('l','w',1,1,[],[],'pacifist',['beacon']),102)
+            game.placePieceOnBoard(testBoard,piece.createPiece('l','w',1,1,piece.createMov(),'pacifist',['beacon']),102)
             game.placePieceOnBoard(testBoard,piece.createPiece('E','b'),117)
             game.placePieceOnBoard(testBoard,piece.createPiece('m','w'),118)
             boardState.printBoard(testBoard)
             console.log(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX))
-            assert.isTrue(equalArray(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX), [35, 36, 33, 32, 18, 50, 66, 85, 86, 87, 101, 103, 119, 117]))
+            assert.isTrue(equalArray(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX), [35, 33, 50, 18, 36, 32, 66, 85, 86, 87, 101, 103, 119, 117]))
         })
     })
     describe('Teleport',function(){
@@ -143,7 +157,7 @@ describe('Mods', function(){
             testBoard[DEFAULTPIECE1INDEX].movmods.push('teleport102')
             boardState.printBoard(testBoard)
             console.log(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX))
-            assert.isTrue(equalArray(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX), [35, 36, 33, 32, 18, 50, 66, 102]))
+            assert.isTrue(equalArray(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX), [35, 33, 50,  18, 36, 32, 66, 102]))
         })
     })
     describe('Teleport Kill',function(){
@@ -192,7 +206,7 @@ describe('Mods', function(){
             let testBoard = setupTestBoard()
             testBoard[DEFAULTPIECE2INDEX].dmgmov = [-1]
             testBoard[DEFAULTPIECE2INDEX].dmgdur = [8]
-            game.placePieceOnBoard(testBoard,piece.createPiece('a','w',1,1,[1],[1],'normal',['kingly']),DEFAULTPIECE1INDEX)
+            game.placePieceOnBoard(testBoard,piece.createPiece('a','w',1,1,piece.createMov([[1,1]],[[1]],[[1,1]],[[1]]),'normal',['kingly']),DEFAULTPIECE1INDEX)
             boardState.printBoard(testBoard)
             console.log(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX))
             assert.isTrue(equalArray(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX), []))
@@ -201,11 +215,11 @@ describe('Mods', function(){
     describe('Check', function(){
         it('Should have p in Bs moveList, and have check return true', function(){
         let testBoard = setupTestBoard()
-        game.placePieceOnBoard(testBoard, piece.createPiece('p','w',1,1,[],[],'pacifist',['kingly']),DEFAULTPIECE1INDEX)
-        testBoard[DEFAULTPIECE2INDEX].mov=[-1]
-        testBoard[DEFAULTPIECE2INDEX].movdur=[8]
-        testBoard[DEFAULTPIECE2INDEX].dmgmov =[-1]
-        testBoard[DEFAULTPIECE2INDEX].dmgmovdur = [8]
+        game.placePieceOnBoard(testBoard, piece.createPiece('p','w',1,1,piece.createMov(),'pacifist',['kingly']),DEFAULTPIECE1INDEX)
+        testBoard[DEFAULTPIECE2INDEX].mov.paths=[[-1,-8]]
+        testBoard[DEFAULTPIECE2INDEX].mov.space=[[1]]
+        testBoard[DEFAULTPIECE2INDEX].mov.attPaths =[[-1,-8]]
+        testBoard[DEFAULTPIECE2INDEX].mov.attSpace = [[1]]
         boardState.printBoard(testBoard)
         console.log(move.pieceMoveList(testBoard,DEFAULTPIECE2INDEX))
         assert.isTrue(move.check(testBoard,testBoard[DEFAULTPIECE1INDEX].color))
@@ -244,7 +258,7 @@ describe('GAME', function(){
             console.log(FEN)
         })
     })
-    describe('makeMove', function (){
+   describe('makeMove', function (){
         it('Should allow a piece to move if it is legal, and not allow illegal moves', function(){
             let testBoard = setupTestBoard()
             var moveMade = move.makeMove(testBoard, 'w', 'c6', 35)
@@ -257,3 +271,17 @@ describe('GAME', function(){
     })
 })
 
+describe('MOVE', function(){
+    describe('Movement', function(){
+        it('Should work', function(){
+            var testBoard = new Array(128)
+            game.initializeBoard(testBoard)
+            let mov = piece.createMov([[17,34,32]],[[17,1]])
+            testBoard[DEFAULTPIECE1INDEX+31] = piece.createPiece('p','w',1,1, mov)
+            boardState.printBoard(testBoard)
+            console.log(" A B C D E F G H")
+            var moveList = move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX+31)
+            console.log(move.moveListCoordinates(moveList))
+        })
+    })
+})

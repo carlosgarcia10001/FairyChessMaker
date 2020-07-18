@@ -6,15 +6,15 @@ function validSquare(square){
 }
 
 function emptySquare(board, square){
-    return board[square].color==""
+    return validSquare(square) && board[square].color==""
 }
 
 function occupiedSquare(board,square){
-    return board[square].color!=""
+    return validSquare(square) && board[square].color!=""
 }
 
 function allySquare(board, square, parsedSquare){
-    return board[square].color==board[parsedSquare].color
+    return occupiedSquare(board,parsedSquare) && board[square].color==board[parsedSquare].color
 }
 
 function enemySquare(board, square, parsedSquare){
@@ -26,7 +26,7 @@ function pieceHasAttributeMod(board, square, mod){
 }
 
 function printBoard(board){
-    for(var i = 7; i >= 0; i--){
+    for(var i = 0; i < 8; i++){
         console.log("|"+board[0+i*16].id+"|"+board[1+i*16].id + "|" + board[2+i*16].id+"|"+board[3+i*16].id + "|" + board[4+i*16].id+"|"+board[5+i*16].id + "|" 
         + board[6+i*16].id+"|"+board[7+i*16].id + "|")
     }

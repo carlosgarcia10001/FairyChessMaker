@@ -158,6 +158,8 @@ function validBeaconTeleport(board, square, beaconIndex, offset){
 function parseMoveMods(board, square, moveList){
     for(let i = 0; i < board[square].movmods.length;i++){
         var mod = board[square].movmods[i]
+        console.log(mod)
+        console.log(mods)
         mods[mod](board, square, moveList)
     }
 }
