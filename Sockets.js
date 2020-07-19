@@ -32,25 +32,27 @@ function createPlaySocket(sessionParser){
         else{
             var game = await client.db('FairyChessMaker').collection('Games').findOne(ObjectId(match.gameId))
             if(!match.white || !match.black){
-                if(!match.white && game.black!=req.session.userId){
+                if(!match.white && game.black!=req.session.userId && req.session.userId){
                     await client.db('FairyChessMaker').collection('Matches').updateOne({_id: ObjectId(match._id)},{ $set: {white: req.session.userId}})
                     match = await client.db('FairyChessMaker').collection('Matches').findOne(ObjectId(message.matchId))
                 }
-                else if(!match.black && match.white!=req.session.userId){
+                else if(!match.black && match.white!=req.session.userId && req.session.userId){
                     await client.db('FairyChessMaker').collection('Matches').updateOne({_id: Object(match._id)},{ $set: {black: req.session.userId}})
                     match = await client.db('FairyChessMaker').collection('Matches').findOne(ObjectId(message.matchId))
                 }
             }
             if(match.white){
                 whiteId = match.white
+                delete match.white
             }
             if(match.black){
                 blackId = match.black
+                delete match.black
             }
-            if(req.session.userId == blackId){
+            if(req.session.userId == blackId && req.session.userId){
                 match.playerColor = 'b'
             }
-            else if(req.session.userId == whiteId){
+            else if(req.session.userId == whiteId && req.session.userId){
                 match.playerColor = 'w'
             }
             game.pieces = JSON.parse(game.pieces)

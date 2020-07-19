@@ -540,7 +540,6 @@ var playerColor
 $(document).ready(function(){
     var htmlSquares = []
     var locateHtmlSquares = {}
-    var color
     $(document).on('load',function(){
         htmlSquares = htmlBoardControl.createHtmlSquares()
         locateHtmlSquares = htmlBoardControl.createLocateHtmlSquares(htmlSquares)
@@ -554,6 +553,7 @@ $(document).ready(function(){
             if(data.charAt(0)=='{'){ //A JSON would imply that the game is being setup or is being updated based on the opposing player's moves
                 data = JSON.parse(message.data)
                 if(data.match){
+                    console.log(data.match)
                     if(data.match.FEN){
                         FEN = data.match.FEN
                         htmlBoard.position(FEN)  
@@ -591,6 +591,7 @@ $(document).ready(function(){
     }
 
     function onDragStart(source, piece, currPos, Orientation){
+        console.log(playerColor)
         if(piece.charAt(0)!=playerColor){
             return false
         }
