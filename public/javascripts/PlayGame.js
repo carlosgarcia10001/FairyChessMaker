@@ -1,5 +1,5 @@
 var htmlBoardControl = require('./htmlBoardControl')
-const socket = new WebSocket('ws://localhost:3000')
+const socket = new WebSocket('ws://localhost:3000/play/'+window.location.pathname.substring(6))
 var FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
 var highlightedMoves
 var playerColor

@@ -8,17 +8,12 @@ var gameControl = require('./public/javascripts/Game')
 var move = require('./public/javascripts/Move')
 var cleanPieceFileRead = require('./public/javascripts/CleanPieceFileRead')
 var IndexAndCoordinates = require('./public/javascripts/IndexAndCoordinates')
-var blackId
-var matchId
-var whiteId
+var boardState = require('./public/javascripts/BoardState')
 
-function createGameCreatorSocket(){
-    var wss = new WebSocket.Server({ noServer: true})
-    wss.on('connection', function(ws, req){
-
-    })
-}
 function createPlaySocket(sessionParser){
+    var blackId
+    var matchId
+    var whiteId
     var board = new Array(128)
     var turn = 'w'
     gameControl.initializeBoard(board)
@@ -33,11 +28,11 @@ function createPlaySocket(sessionParser){
             var game = await client.db('FairyChessMaker').collection('Games').findOne(ObjectId(match.gameId))
             if(!match.white || !match.black){
                 if(!match.white && game.black!=req.session.userId && req.session.userId){
-                    await client.db('FairyChessMaker').collection('Matches').updateOne({_id: ObjectId(match._id)},{ $set: {white: req.session.userId}})
+                    await client.db('FairyChessMaker').collection('Matches').updateOne({_id: ObjectId(match._id)},{$set: {white: req.session.userId}})
                     match = await client.db('FairyChessMaker').collection('Matches').findOne(ObjectId(message.matchId))
                 }
                 else if(!match.black && match.white!=req.session.userId && req.session.userId){
-                    await client.db('FairyChessMaker').collection('Matches').updateOne({_id: Object(match._id)},{ $set: {black: req.session.userId}})
+                    await client.db('FairyChessMaker').collection('Matches').updateOne({_id: Object(match._id)},{$set: {black: req.session.userId}})
                     match = await client.db('FairyChessMaker').collection('Matches').findOne(ObjectId(message.matchId))
                 }
             }
@@ -103,7 +98,6 @@ function createPlaySocket(sessionParser){
     var wss = new WebSocket.Server({ noServer: true})
     wss.on('connection', function (ws, req) {
         sessionParser(req, {}, () => {})
-
         ws.on('message', function (message) {
             var isJSON = false
             if(message.charAt(0)=='{'){
