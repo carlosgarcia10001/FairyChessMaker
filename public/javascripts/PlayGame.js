@@ -3,6 +3,7 @@ const socket = new WebSocket('ws://localhost:3000/play/'+window.location.pathnam
 var FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
 var highlightedMoves
 var playerColor
+var turn
 $(document).ready(function(){
     var htmlSquares = []
     var locateHtmlSquares = {}
@@ -26,6 +27,9 @@ $(document).ready(function(){
                     if(data.match.playerColor){
                         playerColor = data.match.playerColor
                     }
+                    if(data.match.turn){
+                        turn = data.match.turn
+                    }
                 }
                 if(data.FEN){
                     if(FEN!=data.FEN){
@@ -38,6 +42,9 @@ $(document).ready(function(){
                     var square = ""
                     highlightedMoves = moveList
                     htmlBoardControl.updateHighlightedMoves(htmlSquares,locateHtmlSquares, moveList)
+                }
+                if(data.turn){
+                    turn = data.turn
                 }
             }
             else if(message.data == "/browse"){ //Only occurs due to an error
@@ -58,7 +65,7 @@ $(document).ready(function(){
     function onDragStart(source, piece, currPos, Orientation){
         console.log(playerColor)
         if(piece.charAt(0)!=playerColor){
-            return false
+           return false
         }
     }
 
@@ -79,7 +86,7 @@ $(document).ready(function(){
                 to: target
             }
         }
-        if(highlightedMoves.indexOf(target)==-1){
+        if(highlightedMoves.indexOf(target)==-1 || turn!=playerColor){
             return 'snapback'
         }
         socket.send(JSON.stringify(parsedMove))

@@ -27,7 +27,8 @@ router.post('/', function(req, res){
         var game = await client.db('FairyChessMaker').collection('Games').findOne(ObjectId(id))
         var match = await client.db('FairyChessMaker').collection("Matches").insertOne({
             gameId: id,
-            FEN: game.FEN
+            FEN: game.FEN,
+            turn: 'w'
         })
         res.send(match.insertedId)
     }

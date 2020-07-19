@@ -15,7 +15,7 @@ function createPlaySocket(sessionParser){
     var matchId
     var whiteId
     var board = new Array(128)
-    var turn = 'w'
+    var turn
     gameControl.initializeBoard(board)
     async function getData(message, ws, req){
         var client = await MongoClient.connect(url)
@@ -50,6 +50,9 @@ function createPlaySocket(sessionParser){
             else if(req.session.userId == whiteId && req.session.userId){
                 match.playerColor = 'w'
             }
+            if(match.turn){
+                turn = match.turn
+            }
             game.pieces = JSON.parse(game.pieces)
             cleanPieceFileRead.cleanPieces(game.pieces)
             gameControl.parseFEN(board, match.FEN, game.pieces)
@@ -65,6 +68,10 @@ function createPlaySocket(sessionParser){
         await client.db('FairyChessMaker').collection('Matches').updateOne({_id: ObjectId(matchId)}, { $set: {FEN: FEN}})
     }
 
+    async function updateTurn(color){
+        var client = await MongoClient.connect(url)
+        await client.db('FairyChessMaker').collection('Matches').updateOne({_id: ObjectId(matchId)}, { $set: {turn: color}})
+    }
     var messageResponse = {
         matchId: function(message, ws, req){
             getData(message, ws, req).then((response) => {
@@ -82,11 +89,22 @@ function createPlaySocket(sessionParser){
             var fromColor = board[IndexAndCoordinates.coordinatesToIndex[message.move.from]].color
             if((whiteId == req.session.userId && fromColor == 'w') || (blackId == req.session.userId && fromColor == 'b')){
                 if(fromColor == turn){   
-                    move.makeMove(board, turn, message.move.from, message.move.to)
+                    var movement = move.makeMove(board, message.move.from, message.move.to)
+                    console.log(movement)
+                    if(movement!=false){
+                        if(turn == 'w'){
+                            turn = 'b'
+                        }
+                        else{
+                            turn = 'w'
+                        }
+                        updateTurn(turn)
+                    }
                 }
             }
             var moveResponse = {
-                FEN: gameControl.createFEN(board)
+                FEN: gameControl.createFEN(board),
+                turn: turn
             }
             updateFEN(moveResponse.FEN)
             wss.clients.forEach((client) =>{

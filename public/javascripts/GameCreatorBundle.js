@@ -935,7 +935,7 @@ function check(board, color){
     return false
 }
 
-var makeMove = function(parsedBoard, turn, initial, target, dummyMove = false){
+var makeMove = function(parsedBoard, initial, target, dummyMove = false){
     if(typeof(initial)=='string'){
         initial = indexAndCoordinates.coordinatesToIndex[initial]
     }
@@ -952,12 +952,6 @@ var makeMove = function(parsedBoard, turn, initial, target, dummyMove = false){
     else if(pieceMoveList(parsedBoard,initial).indexOf(target)!=-1){
         parsedBoard[target] = parsedBoard[initial]
         parsedBoard[initial] = piece.createPiece() 
-        if(turn == 'w'){
-            turn = 'b'
-        }
-        else{
-            turn = 'w'
-        }
         return indexAndCoordinates.indexToCoordinates[initial].toLowerCase() + "-" + indexAndCoordinates.indexToCoordinates[target].toLowerCase()
     } 
     return false 
