@@ -554,7 +554,8 @@ function unHighlightValidMoves(htmlSquares){
         }
     }
 }
-function updateHighlightedMoves(htmlSquares, locateHtmlSquares, moveList = []){
+
+function updateHighlightedMoves(htmlSquares, locateHtmlSquares, moveList){
     unHighlightValidMoves(htmlSquares)
     highlightValidMoves(locateHtmlSquares, moveList)
 }
@@ -590,7 +591,7 @@ function currentPieceMoveCoordinates(parsedHtmlBoard, parsedIndex){
 
 exports.createHtmlSquares = createHtmlSquares
 exports.createLocateHtmlSquares = createLocateHtmlSquares
-exports.updateHighlightedMovesOnGameCreator = updateHighlightedMoves
+exports.updateHighlightedMoves = updateHighlightedMoves
 exports.highlightValidMoves = highlightValidMoves
 exports.unHighlightValidMoves = unHighlightValidMoves
 exports.updateHighlightedMovesOnGameCreator = updateHighlightedMovesOnGameCreator

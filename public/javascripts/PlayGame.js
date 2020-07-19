@@ -1,11 +1,7 @@
-var piece = require('./Piece')
-var game = require('./Game')
-var board = new Array(128)
 var htmlBoardControl = require('./htmlBoardControl')
 const socket = new WebSocket('ws://localhost:3000')
 var FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
 var highlightedMoves
-game.initializeBoard(board)
 
 $(document).ready(function(){
     var htmlSquares = []
