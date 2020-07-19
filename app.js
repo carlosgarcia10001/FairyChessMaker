@@ -67,9 +67,8 @@ app.use(function(err, req, res, next) {
 
   
 var server = app.listen(port, () => console.log("app running"))
-
+var play = sockets.createPlaySocket(sessionParser)
 server.on('upgrade', function upgrade(request, socket, head) {
-  var play = sockets.createPlaySocket(sessionParser)
   play.handleUpgrade(request, socket, head, function(ws){
     play.emit('connection', ws, request)
   })

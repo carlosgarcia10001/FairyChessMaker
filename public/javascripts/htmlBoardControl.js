@@ -14,8 +14,9 @@ function createLocateHtmlSquares(htmlSquares){
     return locateSquares
 }
 
-function highlightValidMoves(parsedBoard, parsedIndex, locateHtmlSquares){
-    var moveset = currentPieceMoveCoordinates(parsedBoard, parsedIndex)
+function highlightValidMoves(locateHtmlSquares, moveList){
+    var moveset = moveList
+    
     for(var i = 0; i < moveset.length; i++){
         if(!($(moveset[i]).hasClass('moveset'))){
             $(locateHtmlSquares[moveset[i]]).addClass("moveset")
@@ -32,10 +33,26 @@ function unHighlightValidMoves(htmlSquares){
         }
     }
 }
-function updateHighlightedMoves(parsedHtmlBoard, parsedIndex, htmlSquares, locateHtmlSquares){
+function updateHighlightedMoves(htmlSquares, locateHtmlSquares, moveList = []){
     unHighlightValidMoves(htmlSquares)
-    highlightValidMoves(parsedHtmlBoard, parsedIndex, locateHtmlSquares)
+    highlightValidMoves(locateHtmlSquares, moveList)
 }
+
+function updateHighlightedMovesOnGameCreator(parsedHtmlBoard, parsedIndex, htmlSquares, locateHtmlSquares){
+    unHighlightValidMoves(htmlSquares)
+    highlightValidMovesOnGameCreator(parsedHtmlBoard, parsedIndex, locateHtmlSquares)
+}
+
+function highlightValidMovesOnGameCreator(parsedBoard, parsedIndex, locateHtmlSquares){
+    var moveset = currentPieceMoveCoordinates(parsedBoard, parsedIndex)
+    for(var i = 0; i < moveset.length; i++){
+        if(!($(moveset[i]).hasClass('moveset'))){
+            $(locateHtmlSquares[moveset[i]]).addClass("moveset")
+            $(locateHtmlSquares[moveset[i]]).css('background', highlightMove)
+        }
+    }
+}
+
 
 function currentPieceMoveCoordinates(parsedHtmlBoard, parsedIndex){
     var coordinates = []
@@ -52,6 +69,8 @@ function currentPieceMoveCoordinates(parsedHtmlBoard, parsedIndex){
 
 exports.createHtmlSquares = createHtmlSquares
 exports.createLocateHtmlSquares = createLocateHtmlSquares
-exports.updateHighlightedMoves = updateHighlightedMoves
+exports.updateHighlightedMovesOnGameCreator = updateHighlightedMoves
 exports.highlightValidMoves = highlightValidMoves
 exports.unHighlightValidMoves = unHighlightValidMoves
+exports.updateHighlightedMovesOnGameCreator = updateHighlightedMovesOnGameCreator
+exports.highlightValidMovesOnGameCreator = highlightValidMovesOnGameCreator

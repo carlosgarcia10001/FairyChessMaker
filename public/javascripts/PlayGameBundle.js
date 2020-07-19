@@ -101,66 +101,6 @@ if(typeof exports != 'undefined'){
     exports.pieceHasAttributeMod = pieceHasAttributeMod
 }
 },{}],4:[function(require,module,exports){
-function cleanPieces(pieces){
-    var keys = Object.keys(pieces)
-    for(var i = 0; i < keys.length;i++){
-        cleanPiece(pieces[keys[i]])
-    }
-}
-
-function cleanPiece(piece){
-    piece.hp = Number(piece.hp)
-    piece.dmg = Number(piece.dmg)
-    if(!piece.mov){
-        piece.mov = {
-            paths: [],
-            space: [], 
-            attPaths: [],
-            attSpace: []
-        }
-    }
-    var mov = {
-        paths: [],
-        space: [],
-        attPaths: [],
-        attSpace: []
-    }
-    if(typeof(piece.attrmods) == 'undefined'){
-        piece.attrmods = []
-    }
-    if(typeof(piece.movmods) == 'undefined'){
-        piece.movmods = []
-    }
-    for(var i = 0; i < piece.mov.paths.length; i++){
-        mov.paths.push([])
-        for(var j = 0; j < piece.mov.paths[i].length; j++){
-            mov.paths[i].push(Number(piece.mov.paths[i][j]))
-        }
-    }
-    for(var i = 0; i < piece.mov.space.length; i++){
-        mov.space.push([])
-        for(var j = 0; j < piece.mov.space[i].length; j++){
-            mov.space[i].push(Number(piece.mov.space[i][j]))
-        }
-    }
-    for(var i = 0; i < piece.mov.attPaths.length; i++){
-        mov.attPaths.push([])
-        for(var j = 0; j < piece.mov.attPaths[i].length; j++){
-            mov.attPaths[i].push(Number(piece.mov.attPaths[i][j]))
-        }
-    }
-    for(var i = 0; i < piece.mov.attSpace.length; i++){
-        mov.attSpace.push([])
-        for(var j = 0; j < piece.mov.attSpace[i].length; j++){
-            mov.attSpace[i].push(Number(piece.mov.attSpace[i][j]))
-        }
-    }
-    piece.mov = mov
-}
-
-exports.cleanPieces = cleanPieces
-exports.cleanPiece = cleanPiece
-},{}],5:[function(require,module,exports){
 var boardState  = require('./BoardState')
 var piece = require('./Piece')
 var move = require('./Move')
@@ -204,7 +144,7 @@ function createFEN(parsedBoard){
             if(count>0){
                 FEN+=count
             }
-            if(i<112){
+            if(i<113){
                 FEN+='/'
             }
             count = 0
@@ -286,7 +226,7 @@ exports.checkMate = checkMate
 exports.boardHistory = boardHistory
 exports.createFEN = createFEN
 exports.parseFEN = parseFEN
-},{"./AttributeMods":1,"./BoardState":3,"./IndexAndCoordinates":6,"./Move":7,"./Piece":8}],6:[function(require,module,exports){
+},{"./AttributeMods":1,"./BoardState":3,"./IndexAndCoordinates":5,"./Move":6,"./Piece":7}],5:[function(require,module,exports){
 var indexToCoordinates = {}
 var coordinatesToIndex = {}
 
@@ -311,7 +251,7 @@ if(typeof exports != 'undefined'){
     exports.indexToCoordinates=indexToCoordinates
     exports.coordinatesToIndex=coordinatesToIndex
 }
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 var boardState = require('./BoardState')
 var pieceAttack = require('./PieceAttack')
 var piece = require('./Piece')
@@ -659,7 +599,7 @@ exports.pieceMoveList = pieceMoveList
 exports.masterMoveList = masterMoveList
 exports.moveListCoordinates = moveListCoordinates
 
-},{"./BoardState":3,"./IndexAndCoordinates":6,"./Piece":8,"./PieceAttack":9}],8:[function(require,module,exports){
+},{"./BoardState":3,"./IndexAndCoordinates":5,"./Piece":7,"./PieceAttack":8}],7:[function(require,module,exports){
 function createPiece(id= " ", color = "", hp = 1, dmg = 1, mov = {
     paths: [],
     space: [],
@@ -728,7 +668,7 @@ exports.createPieces = createPieces
 exports.createMov = createMov
 exports.addPath = addPath
 exports.addAttPath = addAttPath
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 var boardState = require('./BoardState')
 var attackTypes = { 
     normal: function(board, initial, target){ 
@@ -751,17 +691,14 @@ function validAttack(board, square, target){
 
 exports.validAttack = validAttack
 exports.attackTypes = attackTypes
-},{"./BoardState":3}],10:[function(require,module,exports){
-var move = require('./Move')
+},{"./BoardState":3}],9:[function(require,module,exports){
 var piece = require('./Piece')
-var pieces = piece.createPieces()
-var cleanPieceFileRead = require('./CleanPieceFileRead')
 var game = require('./Game')
 var board = new Array(128)
 var htmlBoardControl = require('./htmlBoardControl')
-var boardState = require('./BoardState')
 const socket = new WebSocket('ws://localhost:3000')
 var FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
+var highlightedMoves
 game.initializeBoard(board)
 
 $(document).ready(function(){
@@ -771,32 +708,37 @@ $(document).ready(function(){
         htmlSquares = htmlBoardControl.createHtmlSquares()
         locateHtmlSquares = htmlBoardControl.createLocateHtmlSquares(htmlSquares)
         var matchId = window.location.pathname.substring(6)  
-
         socket.addEventListener('open', function (event) {               
-            socket.send(JSON.stringify({id: matchId}));
+            socket.send(JSON.stringify({matchId: matchId}));
         });
 
         socket.addEventListener('message', function (message) {
             var data = message.data
             if(data.charAt(0)=='{'){ //A JSON would imply that the game is being setup or is being updated based on the opposing player's moves
                 data = JSON.parse(message.data)
+                if(data.match){
+                    if(data.match.FEN){
+                        FEN = data.match.FEN
+                        htmlBoard.position(FEN)  
+                    }
+                }
                 if(data.FEN){
-                    FEN = data.FEN
+                    if(FEN!=data.FEN){
+                        htmlBoard.position(data.FEN)
+                    }
+                    FEN = data.FEN 
                 }
-                if(data.Game){
-                    pieces = data.Game
+                if(data.highlightMoveList){
+                    var moveList = data.highlightMoveList
+                    var square = ""
+                    highlightedMoves = moveList
+                    htmlBoardControl.updateHighlightedMoves(htmlSquares,locateHtmlSquares, moveList)
                 }
-                cleanPieceFileRead.cleanPieces(pieces)
-                game.parseFEN(board, FEN, pieces)
-                console.log(FEN)
-                htmlBoard.position(FEN)
             }
             else if(message.data == "/browse"){ //Only occurs due to an error
-                window.location.assign(message)
+                window.location.assign(message.data)
             }
-            else{ //If a move is given 
-
-            }
+            
         });  
     })
 
@@ -808,28 +750,32 @@ $(document).ready(function(){
     }
 
     function onMouseoverSquare(square, piece){
+        var highlightMoveList = {
+            highlightMoveList: square
+        }
+        socket.send(JSON.stringify(highlightMoveList))
         if(piece==false){
             htmlBoardControl.unHighlightValidMoves(htmlSquares)
-        }
-        else{
-            htmlBoardControl.updateHighlightedMoves(board,square,htmlSquares,locateHtmlSquares)
         }
     }
 
     function onDrop(source, target, piece){
-        var movement = move.makeMove(board, 'w', source, target)
-        socket.send(movement)
-        console.log(pieces)
-        boardState.printBoard(board)
-        if(movement == false){
+        var parsedMove = {
+            move: {
+                from: source,
+                to: target
+            }
+        }
+        if(highlightedMoves.indexOf(target)==-1){
             return 'snapback'
         }
+        socket.send(JSON.stringify(parsedMove))
 
     }
     var htmlBoard = Chessboard('myBoard',config)
     $(document).trigger('load')
 })
-},{"./BoardState":3,"./CleanPieceFileRead":4,"./Game":5,"./Move":7,"./Piece":8,"./htmlBoardControl":11}],11:[function(require,module,exports){
+},{"./Game":4,"./Piece":7,"./htmlBoardControl":10}],10:[function(require,module,exports){
 var move = require('./Move')
 var indexAndCoordinates = require('./IndexAndCoordinates')
 var highlightMove = '#a9a9a9'
@@ -846,8 +792,9 @@ function createLocateHtmlSquares(htmlSquares){
     return locateSquares
 }
 
-function highlightValidMoves(parsedBoard, parsedIndex, locateHtmlSquares){
-    var moveset = currentPieceMoveCoordinates(parsedBoard, parsedIndex)
+function highlightValidMoves(locateHtmlSquares, moveList){
+    var moveset = moveList
+    
     for(var i = 0; i < moveset.length; i++){
         if(!($(moveset[i]).hasClass('moveset'))){
             $(locateHtmlSquares[moveset[i]]).addClass("moveset")
@@ -864,10 +811,26 @@ function unHighlightValidMoves(htmlSquares){
         }
     }
 }
-function updateHighlightedMoves(parsedHtmlBoard, parsedIndex, htmlSquares, locateHtmlSquares){
+function updateHighlightedMoves(htmlSquares, locateHtmlSquares, moveList = []){
     unHighlightValidMoves(htmlSquares)
-    highlightValidMoves(parsedHtmlBoard, parsedIndex, locateHtmlSquares)
+    highlightValidMoves(locateHtmlSquares, moveList)
 }
+
+function updateHighlightedMovesOnGameCreator(parsedHtmlBoard, parsedIndex, htmlSquares, locateHtmlSquares){
+    unHighlightValidMoves(htmlSquares)
+    highlightValidMovesOnGameCreator(parsedHtmlBoard, parsedIndex, locateHtmlSquares)
+}
+
+function highlightValidMovesOnGameCreator(parsedBoard, parsedIndex, locateHtmlSquares){
+    var moveset = currentPieceMoveCoordinates(parsedBoard, parsedIndex)
+    for(var i = 0; i < moveset.length; i++){
+        if(!($(moveset[i]).hasClass('moveset'))){
+            $(locateHtmlSquares[moveset[i]]).addClass("moveset")
+            $(locateHtmlSquares[moveset[i]]).css('background', highlightMove)
+        }
+    }
+}
+
 
 function currentPieceMoveCoordinates(parsedHtmlBoard, parsedIndex){
     var coordinates = []
@@ -884,8 +847,9 @@ function currentPieceMoveCoordinates(parsedHtmlBoard, parsedIndex){
 
 exports.createHtmlSquares = createHtmlSquares
 exports.createLocateHtmlSquares = createLocateHtmlSquares
-exports.updateHighlightedMoves = updateHighlightedMoves
+exports.updateHighlightedMovesOnGameCreator = updateHighlightedMoves
 exports.highlightValidMoves = highlightValidMoves
 exports.unHighlightValidMoves = unHighlightValidMoves
-
-},{"./IndexAndCoordinates":6,"./Move":7}]},{},[10]);
+exports.updateHighlightedMovesOnGameCreator = updateHighlightedMovesOnGameCreator
+exports.highlightValidMovesOnGameCreator = highlightValidMovesOnGameCreator
+},{"./IndexAndCoordinates":5,"./Move":6}]},{},[9]);

@@ -144,7 +144,7 @@ function createFEN(parsedBoard){
             if(count>0){
                 FEN+=count
             }
-            if(i<112){
+            if(i<113){
                 FEN+='/'
             }
             count = 0
@@ -342,7 +342,7 @@ $(document).ready(function(){
             piece.addPath(pieces[currentPiece], diagonalPathDownLeft.path, diagonalPathDownLeft.space)
             piece.addPath(pieces[currentPiece], diagonalPathDownRight.path, diagonalPathDownRight.space)
             console.log(board[indexAndCoordinates.coordinatesToIndex[currentPiecePosition]])
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
         }
     })
     $("#kingMovement").click(function(){
@@ -356,7 +356,7 @@ $(document).ready(function(){
             piece.addPath(pieces[currentPiece], upLeft,[1])
             piece.addPath(pieces[currentPiece], upRight,[1])
             console.log(board[indexAndCoordinates.coordinatesToIndex[currentPiecePosition]])
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
     })
     $("#bishopMovement").click(function(){
         if(currentPiece!=""){
@@ -364,7 +364,7 @@ $(document).ready(function(){
             piece.addPath(pieces[currentPiece], diagonalPathUpRight.path,diagonalPathUpRight.space)
             piece.addPath(pieces[currentPiece], diagonalPathDownLeft.path,diagonalPathDownLeft.space)
             piece.addPath(pieces[currentPiece], diagonalPathDownRight.path,diagonalPathDownRight.space)
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
         }
     })
     $("#rookMovement").click(function(){
@@ -373,7 +373,7 @@ $(document).ready(function(){
             piece.addPath(pieces[currentPiece], horizontalPathRight.path,horizontalPathRight.space)
             piece.addPath(pieces[currentPiece], verticalPathUp.path,verticalPathUp.space)
             piece.addPath(pieces[currentPiece], verticalPathDown.path,verticalPathDown.space)
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
         }
     })
     $("#knightMovement").click(function(){
@@ -386,7 +386,7 @@ $(document).ready(function(){
             piece.addPath(pieces[currentPiece], knightDownLeft2,[1])
             piece.addPath(pieces[currentPiece], knightDownRight1,[1])
             piece.addPath(pieces[currentPiece], knightDownRight2,[1])
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
           }
     })
     $("#pawnMovement").click(function(){
@@ -402,7 +402,7 @@ $(document).ready(function(){
                 piece.addAttPath(pieces[currentPiece], downRight,[1])
             }
             console.log(pieces[currentPiece])
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
         }
     })
     $("#customMovement").click(function(){
@@ -445,7 +445,7 @@ $(document).ready(function(){
             }
             if(!undefined){
                 piece.addPath(pieces[currentPiece],indexPath,indexSpace)
-                htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+                htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
             }
             else{
                 alert("The input was invalid. Please try again with a valid input.")
@@ -458,7 +458,7 @@ $(document).ready(function(){
                 square.trim()
                 square.toLowerCase()
                 pieces[currentPiece].movmods.push("teleport"+indexAndCoordinates.coordinatesToIndex[square])
-                htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+                htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
             }
         })
     var config = {
@@ -495,7 +495,7 @@ $(document).ready(function(){
             currentPiecePosition = 'd4'
             currentPiece = draggedPiece
             board[indexAndCoordinates.coordinatesToIndex['d4']] = pieces[currentPiece]
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
             loadCheckboxes()
             return false
         }
@@ -511,7 +511,7 @@ $(document).ready(function(){
             currentPiecePosition = Object.keys(newPos)[0]
             board[indexAndCoordinates.coordinatesToIndex[currentPiecePosition]] = pieces[currentPiece]
             console.log(currentPiecePosition)
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
         }
     }
 
@@ -535,8 +535,9 @@ function createLocateHtmlSquares(htmlSquares){
     return locateSquares
 }
 
-function highlightValidMoves(parsedBoard, parsedIndex, locateHtmlSquares){
-    var moveset = currentPieceMoveCoordinates(parsedBoard, parsedIndex)
+function highlightValidMoves(locateHtmlSquares, moveList){
+    var moveset = moveList
+    
     for(var i = 0; i < moveset.length; i++){
         if(!($(moveset[i]).hasClass('moveset'))){
             $(locateHtmlSquares[moveset[i]]).addClass("moveset")
@@ -553,10 +554,26 @@ function unHighlightValidMoves(htmlSquares){
         }
     }
 }
-function updateHighlightedMoves(parsedHtmlBoard, parsedIndex, htmlSquares, locateHtmlSquares){
+function updateHighlightedMoves(htmlSquares, locateHtmlSquares, moveList = []){
     unHighlightValidMoves(htmlSquares)
-    highlightValidMoves(parsedHtmlBoard, parsedIndex, locateHtmlSquares)
+    highlightValidMoves(locateHtmlSquares, moveList)
 }
+
+function updateHighlightedMovesOnGameCreator(parsedHtmlBoard, parsedIndex, htmlSquares, locateHtmlSquares){
+    unHighlightValidMoves(htmlSquares)
+    highlightValidMovesOnGameCreator(parsedHtmlBoard, parsedIndex, locateHtmlSquares)
+}
+
+function highlightValidMovesOnGameCreator(parsedBoard, parsedIndex, locateHtmlSquares){
+    var moveset = currentPieceMoveCoordinates(parsedBoard, parsedIndex)
+    for(var i = 0; i < moveset.length; i++){
+        if(!($(moveset[i]).hasClass('moveset'))){
+            $(locateHtmlSquares[moveset[i]]).addClass("moveset")
+            $(locateHtmlSquares[moveset[i]]).css('background', highlightMove)
+        }
+    }
+}
+
 
 function currentPieceMoveCoordinates(parsedHtmlBoard, parsedIndex){
     var coordinates = []
@@ -573,10 +590,11 @@ function currentPieceMoveCoordinates(parsedHtmlBoard, parsedIndex){
 
 exports.createHtmlSquares = createHtmlSquares
 exports.createLocateHtmlSquares = createLocateHtmlSquares
-exports.updateHighlightedMoves = updateHighlightedMoves
+exports.updateHighlightedMovesOnGameCreator = updateHighlightedMoves
 exports.highlightValidMoves = highlightValidMoves
 exports.unHighlightValidMoves = unHighlightValidMoves
-
+exports.updateHighlightedMovesOnGameCreator = updateHighlightedMovesOnGameCreator
+exports.highlightValidMovesOnGameCreator = highlightValidMovesOnGameCreator
 },{"./IndexAndCoordinates":7,"./Move":8}],7:[function(require,module,exports){
 var indexToCoordinates = {}
 var coordinatesToIndex = {}

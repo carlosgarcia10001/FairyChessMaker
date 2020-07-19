@@ -113,7 +113,7 @@ $(document).ready(function(){
             piece.addPath(pieces[currentPiece], diagonalPathDownLeft.path, diagonalPathDownLeft.space)
             piece.addPath(pieces[currentPiece], diagonalPathDownRight.path, diagonalPathDownRight.space)
             console.log(board[indexAndCoordinates.coordinatesToIndex[currentPiecePosition]])
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
         }
     })
     $("#kingMovement").click(function(){
@@ -127,7 +127,7 @@ $(document).ready(function(){
             piece.addPath(pieces[currentPiece], upLeft,[1])
             piece.addPath(pieces[currentPiece], upRight,[1])
             console.log(board[indexAndCoordinates.coordinatesToIndex[currentPiecePosition]])
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
     })
     $("#bishopMovement").click(function(){
         if(currentPiece!=""){
@@ -135,7 +135,7 @@ $(document).ready(function(){
             piece.addPath(pieces[currentPiece], diagonalPathUpRight.path,diagonalPathUpRight.space)
             piece.addPath(pieces[currentPiece], diagonalPathDownLeft.path,diagonalPathDownLeft.space)
             piece.addPath(pieces[currentPiece], diagonalPathDownRight.path,diagonalPathDownRight.space)
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
         }
     })
     $("#rookMovement").click(function(){
@@ -144,7 +144,7 @@ $(document).ready(function(){
             piece.addPath(pieces[currentPiece], horizontalPathRight.path,horizontalPathRight.space)
             piece.addPath(pieces[currentPiece], verticalPathUp.path,verticalPathUp.space)
             piece.addPath(pieces[currentPiece], verticalPathDown.path,verticalPathDown.space)
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
         }
     })
     $("#knightMovement").click(function(){
@@ -157,7 +157,7 @@ $(document).ready(function(){
             piece.addPath(pieces[currentPiece], knightDownLeft2,[1])
             piece.addPath(pieces[currentPiece], knightDownRight1,[1])
             piece.addPath(pieces[currentPiece], knightDownRight2,[1])
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
           }
     })
     $("#pawnMovement").click(function(){
@@ -173,7 +173,7 @@ $(document).ready(function(){
                 piece.addAttPath(pieces[currentPiece], downRight,[1])
             }
             console.log(pieces[currentPiece])
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
         }
     })
     $("#customMovement").click(function(){
@@ -216,7 +216,7 @@ $(document).ready(function(){
             }
             if(!undefined){
                 piece.addPath(pieces[currentPiece],indexPath,indexSpace)
-                htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+                htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
             }
             else{
                 alert("The input was invalid. Please try again with a valid input.")
@@ -229,7 +229,7 @@ $(document).ready(function(){
                 square.trim()
                 square.toLowerCase()
                 pieces[currentPiece].movmods.push("teleport"+indexAndCoordinates.coordinatesToIndex[square])
-                htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+                htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
             }
         })
     var config = {
@@ -266,7 +266,7 @@ $(document).ready(function(){
             currentPiecePosition = 'd4'
             currentPiece = draggedPiece
             board[indexAndCoordinates.coordinatesToIndex['d4']] = pieces[currentPiece]
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
             loadCheckboxes()
             return false
         }
@@ -282,7 +282,7 @@ $(document).ready(function(){
             currentPiecePosition = Object.keys(newPos)[0]
             board[indexAndCoordinates.coordinatesToIndex[currentPiecePosition]] = pieces[currentPiece]
             console.log(currentPiecePosition)
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
         }
     }
 

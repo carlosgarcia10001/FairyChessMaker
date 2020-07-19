@@ -17,8 +17,9 @@ router.post('/',function(req, res, next){
             if (err) throw err;
         if(result == null){
             db.db('FairyChessMaker').collection("Games").insertOne({
-                "Name": req.body.name,
-                "Game": JSON.stringify(req.body.game)
+                "name": req.body.name,
+                "pieces": JSON.stringify(req.body.game),
+                "FEN": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
             })
             console.log('game added')
         }

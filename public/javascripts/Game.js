@@ -41,7 +41,7 @@ function createFEN(parsedBoard){
             if(count>0){
                 FEN+=count
             }
-            if(i<112){
+            if(i<113){
                 FEN+='/'
             }
             count = 0
