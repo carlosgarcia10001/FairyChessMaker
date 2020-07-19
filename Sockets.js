@@ -7,7 +7,10 @@ var cookie = require('cookie')
 var gameControl = require('./public/javascripts/Game')
 var move = require('./public/javascripts/Move')
 var cleanPieceFileRead = require('./public/javascripts/CleanPieceFileRead')
+var IndexAndCoordinates = require('./public/javascripts/IndexAndCoordinates')
+var blackId
 var matchId
+var whiteId
 
 function createGameCreatorSocket(){
     var wss = new WebSocket.Server({ noServer: true})
@@ -31,10 +34,24 @@ function createPlaySocket(sessionParser){
             if(!match.white || !match.black){
                 if(!match.white && game.black!=req.session.userId){
                     await client.db('FairyChessMaker').collection('Matches').updateOne({_id: ObjectId(match._id)},{ $set: {white: req.session.userId}})
+                    match = await client.db('FairyChessMaker').collection('Matches').findOne(ObjectId(message.matchId))
                 }
                 else if(!match.black && match.white!=req.session.userId){
                     await client.db('FairyChessMaker').collection('Matches').updateOne({_id: Object(match._id)},{ $set: {black: req.session.userId}})
+                    match = await client.db('FairyChessMaker').collection('Matches').findOne(ObjectId(message.matchId))
                 }
+            }
+            if(match.white){
+                whiteId = match.white
+            }
+            if(match.black){
+                blackId = match.black
+            }
+            if(req.session.userId == blackId){
+                match.playerColor = 'b'
+            }
+            else if(req.session.userId == whiteId){
+                match.playerColor = 'w'
             }
             game.pieces = JSON.parse(game.pieces)
             cleanPieceFileRead.cleanPieces(game.pieces)
@@ -65,14 +82,19 @@ function createPlaySocket(sessionParser){
             ws.send(JSON.stringify(highlightMoveList))
         },
         move: function(message, ws, req){
-            move.makeMove(board, turn, message.move.from, message.move.to)
-                        var moveResponse = {
-                            FEN: gameControl.createFEN(board)
-                        }
-                        updateFEN(moveResponse.FEN)
-                        wss.clients.forEach((client) =>{
-                            client.send(JSON.stringify(moveResponse))
-                        })
+            var fromColor = board[IndexAndCoordinates.coordinatesToIndex[message.move.from]].color
+            if((whiteId == req.session.userId && fromColor == 'w') || (blackId == req.session.userId && fromColor == 'b')){
+                if(fromColor == turn){   
+                    move.makeMove(board, turn, message.move.from, message.move.to)
+                }
+            }
+            var moveResponse = {
+                FEN: gameControl.createFEN(board)
+            }
+            updateFEN(moveResponse.FEN)
+            wss.clients.forEach((client) =>{
+                client.send(JSON.stringify(moveResponse))  
+            })
         }
     }
 

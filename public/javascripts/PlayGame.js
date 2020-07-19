@@ -2,10 +2,11 @@ var htmlBoardControl = require('./htmlBoardControl')
 const socket = new WebSocket('ws://localhost:3000')
 var FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
 var highlightedMoves
-
+var playerColor
 $(document).ready(function(){
     var htmlSquares = []
     var locateHtmlSquares = {}
+    var color
     $(document).on('load',function(){
         htmlSquares = htmlBoardControl.createHtmlSquares()
         locateHtmlSquares = htmlBoardControl.createLocateHtmlSquares(htmlSquares)
@@ -22,6 +23,9 @@ $(document).ready(function(){
                     if(data.match.FEN){
                         FEN = data.match.FEN
                         htmlBoard.position(FEN)  
+                    }
+                    if(data.match.playerColor){
+                        playerColor = data.match.playerColor
                     }
                 }
                 if(data.FEN){
@@ -48,7 +52,14 @@ $(document).ready(function(){
         pieceTheme: "../images/chesspieces/wikipedia/{piece}.png",
         draggable: true,
         onMouseoverSquare: onMouseoverSquare,
-        onDrop: onDrop
+        onDrop: onDrop,
+        onDragStart: onDragStart
+    }
+
+    function onDragStart(source, piece, currPos, Orientation){
+        if(piece.charAt(0)!=playerColor){
+            return false
+        }
     }
 
     function onMouseoverSquare(square, piece){
