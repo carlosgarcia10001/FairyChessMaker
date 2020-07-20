@@ -96,6 +96,7 @@ var boardState = require('./BoardState')
 var pieceAttack = require('./PieceAttack')
 var piece = require('./Piece')
 var indexAndCoordinates = require('./IndexAndCoordinates')
+
 var mods = {
     ethereal: function(board, square, moveList){
         loop1:
@@ -202,14 +203,48 @@ var mods = {
     },
     protectKingly: function(board, square, moveList){
         var color = board[square].color
-        for(var i = 0; i < moveList.length; i++){
-            var copyBoard = board.slice()
-            makeMove(copyBoard, color, square, moveList[i], true)
+        console.log(moveListCoordinates(moveList))
+        for(var i = moveList.length-1; i >= 0; i--){
+            var copyBoard = JSON.parse(JSON.stringify(board))
+            var movement = makeMove(copyBoard, square, moveList[i], true)
             if(check(copyBoard, color)){
                 moveList.splice(i,1)
             }
         }
+    }    
+}
+
+function check(board, color){
+    var enemyColor = 'w'
+    if(color == 'w'){
+        enemyColor = 'b'
     }
+    var enemyMoveList = masterMoveList(board, enemyColor, ['protectKingly'])
+    for(var i = 0; i < enemyMoveList.length;i++){
+        if(boardState.pieceHasAttributeMod(board, enemyMoveList[i], 'kingly') && board[enemyMoveList[i]].color==color){
+            return true
+        }
+    }
+    return false
+}
+
+function checkMate(board, color){
+    var enemyColor = 'w'
+    if(color = 'w'){
+        enemyColor = 'b'
+    }
+    var enemyPositions = boardState.pieceIndex(board, enemyColor)
+    for(var i = 0; i < enemyPositions.length;i++){
+        enemyMoveList = move.pieceMoveList(board, enemyPositions[i])
+        for(var j = 0; j < enemyMoveList.length;j++){
+            var copyBoard = board.slice()
+            makeMove(copyBoard, color, enemyPositions[i], enemyMoveList[j], true)
+            if(!check(copyBoard, color)){
+                return false
+            }
+        }
+    }
+    return true
 }
 
 function addTeleportMods(){
@@ -249,21 +284,23 @@ function validBeaconTeleport(board, square, beaconIndex, offset){
     return boardState.validSquare(parsedSquare) && (pieceAttack.attackTypes[board[square].atttype](board, square, parsedSquare) || boardState.emptySquare(board, parsedSquare))
 }
 
-function parseMoveMods(board, square, moveList){
+function parseMoveMods(board, square, moveList, ignoreList = []){
     for(let i = 0; i < board[square].movmods.length;i++){
         var mod = board[square].movmods[i]
-        mods[mod](board, square, moveList)
+        if(ignoreList.indexOf(mod)==-1){
+            mods[mod](board, square, moveList)
+        }
     }
 }
 
-var masterMoveList = function(board, color){
+var masterMoveList = function(board, color, ignoreList){
     var masterMoveList = []
     for(var i = 0; i < 120; i++){
         if(!boardState.validSquare(i)){
             i+=8
         }
         if(board[i].color==color){
-            var moveList = pieceMoveList(board, i)
+            var moveList = pieceMoveList(board, i, ignoreList)
             for(var j = 0; j < moveList.length;j++){
                 if(masterMoveList.indexOf(moveList[j])==-1){
                     masterMoveList.push(moveList[j])
@@ -274,14 +311,14 @@ var masterMoveList = function(board, color){
     return masterMoveList
 }
 
-var pieceMoveList = function(board, square){  
+var pieceMoveList = function(board, square, ignoreList){  
     if(typeof(square)=='string'){
         square = indexAndCoordinates.coordinatesToIndex[square]
     }
     else if(typeof(square)!='number'){
         return false
     }
-    moveList = []
+    var moveList = []
     loop1:
     for(var i = 0; i < board[square].mov.paths.length;i++){
         var parsedSquare = square + board[square].mov.paths[i][0]
@@ -379,7 +416,7 @@ var pieceMoveList = function(board, square){
             }
         }
     }*/
-    parseMoveMods(board,square,moveList)
+    parseMoveMods(board,square,moveList, ignoreList)
     return moveList
 }
 
@@ -391,21 +428,11 @@ function moveListCoordinates(moveList){
     return coordinates
 }
 
-function check(board, color){
-    var enemyColor = 'w'
-    if(color = 'w'){
-        enemyColor = 'b'
-    }
-    var enemyMoveList = masterMoveList(board, enemyColor)
-    for(var i = 0; i < enemyMoveList.length;i++){
-        if(boardState.pieceHasAttributeMod(board, enemyMoveList[i], 'kingly') && board[enemyMoveList[i]].color==color){
-            return true
-        }
-    }
-    return false
-}
-
 var makeMove = function(parsedBoard, initial, target, dummyMove = false){
+    if(initial.length == 5){
+        target = initial.substring(3)
+        initial = initial.substring(0,2)
+    }
     if(typeof(initial)=='string'){
         initial = indexAndCoordinates.coordinatesToIndex[initial]
     }
@@ -548,8 +575,8 @@ $(document).ready(function(){
             if(data.charAt(0)=='{'){ //A JSON would imply that the game is being setup or is being updated based on the opposing player's moves
                 data = JSON.parse(message.data)
                 if(data.match){
-                    if(data.match.FEN){
-                        FEN = data.match.FEN
+                    if(data.match.FENHistory){
+                        FEN = data.match.FENHistory[data.match.FENHistory.length-1]
                         htmlBoard.position(FEN)  
                     }
                     if(data.match.playerColor){
@@ -557,6 +584,7 @@ $(document).ready(function(){
                     }
                     if(data.match.turn){
                         turn = data.match.turn
+                        changeGameStatus(turn)
                     }
                 }
                 if(data.FEN){
@@ -573,6 +601,10 @@ $(document).ready(function(){
                 }
                 if(data.turn){
                     turn = data.turn
+                    changeGameStatus(turn)
+                }
+                if(data.winner){
+                    changeGameStatus(data.winner)
                 }
             }
             else if(message.data == "/browse"){ //Only occurs due to an error
@@ -587,14 +619,17 @@ $(document).ready(function(){
         draggable: true,
         onMouseoverSquare: onMouseoverSquare,
         onDrop: onDrop,
-        onDragStart: onDragStart
     }
 
-    function onDragStart(source, piece, currPos, Orientation){
-        console.log(playerColor)
-        if(piece.charAt(0)!=playerColor){
-           return false
-        }
+    var gameStatus = {
+        w: "White's Turn",
+        b: "Black's Turn",
+        whiteWin: "White Won",
+        blackWin: "Black Won"
+    }
+
+    function changeGameStatus(status){
+        $("#gameStatus").text(gameStatus[status])
     }
 
     function onMouseoverSquare(square, piece){
@@ -614,7 +649,7 @@ $(document).ready(function(){
                 to: target
             }
         }
-        if(highlightedMoves.indexOf(target)==-1 || turn!=playerColor){
+        if(highlightedMoves.indexOf(target)==-1 || turn!=playerColor || piece.charAt(0)!=playerColor){
             return 'snapback'
         }
         socket.send(JSON.stringify(parsedMove))

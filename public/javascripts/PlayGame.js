@@ -20,8 +20,8 @@ $(document).ready(function(){
             if(data.charAt(0)=='{'){ //A JSON would imply that the game is being setup or is being updated based on the opposing player's moves
                 data = JSON.parse(message.data)
                 if(data.match){
-                    if(data.match.FEN){
-                        FEN = data.match.FEN
+                    if(data.match.FENHistory){
+                        FEN = data.match.FENHistory[data.match.FENHistory.length-1]
                         htmlBoard.position(FEN)  
                     }
                     if(data.match.playerColor){
@@ -29,6 +29,7 @@ $(document).ready(function(){
                     }
                     if(data.match.turn){
                         turn = data.match.turn
+                        changeGameStatus(turn)
                     }
                 }
                 if(data.FEN){
@@ -45,6 +46,10 @@ $(document).ready(function(){
                 }
                 if(data.turn){
                     turn = data.turn
+                    changeGameStatus(turn)
+                }
+                if(data.winner){
+                    changeGameStatus(data.winner)
                 }
             }
             else if(message.data == "/browse"){ //Only occurs due to an error
@@ -59,14 +64,17 @@ $(document).ready(function(){
         draggable: true,
         onMouseoverSquare: onMouseoverSquare,
         onDrop: onDrop,
-        onDragStart: onDragStart
     }
 
-    function onDragStart(source, piece, currPos, Orientation){
-        console.log(playerColor)
-        if(piece.charAt(0)!=playerColor){
-           return false
-        }
+    var gameStatus = {
+        w: "White's Turn",
+        b: "Black's Turn",
+        whiteWin: "White Won",
+        blackWin: "Black Won"
+    }
+
+    function changeGameStatus(status){
+        $("#gameStatus").text(gameStatus[status])
     }
 
     function onMouseoverSquare(square, piece){
@@ -86,7 +94,7 @@ $(document).ready(function(){
                 to: target
             }
         }
-        if(highlightedMoves.indexOf(target)==-1 || turn!=playerColor){
+        if(highlightedMoves.indexOf(target)==-1 || turn!=playerColor || piece.charAt(0)!=playerColor){
             return 'snapback'
         }
         socket.send(JSON.stringify(parsedMove))

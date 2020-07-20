@@ -15,21 +15,23 @@ function addBoardStateToHistory(parsedBoard, parsedTurn){
 }
 
 function initializeBoard(parsedBoard){
-    var createdPiece = ""
-    if(typeof(piece)=='undefined'){
-        createdPiece = createPiece()
-    }
-    else{
-        createdPiece = piece.createPiece() 
-    }
     for(var i = 0; i < parsedBoard.length; i++){
+        var createdPiece = piece.createPiece()
          parsedBoard[i] = createdPiece
      }
 }
 
 function placePieceOnBoard(parsedBoard, parsedPiece, parsedSquare){
         parsedBoard[parsedSquare] = parsedPiece
-        AttributeMods.parseMods(parsedBoard, parsedSquare, parsedPiece.color)
+        activateAttributeMods(parsedBoard)
+}
+
+function activateAttributeMods(parsedBoard){
+    for(var i = 0; i < parsedBoard.length;i++){
+        if(boardState.validSquare(i) && parsedBoard[i].attrmods && parsedBoard[i].attrmods.length>0){
+            AttributeMods.parseMods(parsedBoard, i, parsedBoard[i].color)
+        }
+    }
 }
 
 function createFEN(parsedBoard){
@@ -95,31 +97,12 @@ function undoMove(parsedBoard, parsedBoardHistory){
     turn = parsedBoardHistory[parsedBoardHistory.length-1].turn
 }
 
-function checkMate(board, color){
-    var enemyColor = 'w'
-    if(color = 'w'){
-        enemyColor = 'b'
-    }
-    var enemyPositions = boardState.pieceIndex(board, enemyColor)
-    for(var i = 0; i < enemyPositions.length;i++){
-        enemyMoveList = move.pieceMoveList(board, enemyPositions[i])
-        for(var j = 0; j < enemyMoveList.length;j++){
-            var copyBoard = board.slice()
-            makeMove(copyBoard, color, enemyPositions[i], enemyMoveList[j], true)
-            if(!check(copyBoard, color)){
-                return false
-            }
-        }
-    }
-    return true
-}
-
 initializeBoard(board)
 exports.board = board
 exports.turn = turn
 exports.initializeBoard=initializeBoard
 exports.placePieceOnBoard=placePieceOnBoard
-exports.checkMate = checkMate
 exports.boardHistory = boardHistory
 exports.createFEN = createFEN
 exports.parseFEN = parseFEN
+exports.activateAttributeMods = activateAttributeMods

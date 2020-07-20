@@ -12,7 +12,9 @@ var mods ={
     kingly: function(board, color){
         var friendlySquares = boardState.pieceIndex(board,color)
         for(var i = 0; i < friendlySquares.length; i++){
-            helper.addMoveMod(board, friendlySquares[i], 'protectKingly')
+            if(board[friendlySquares[i]].movmods.indexOf('protectKingly')==-1){
+                helper.addMoveMod(board, friendlySquares[i], 'protectKingly')
+            }
         }
     } 
 }
@@ -23,5 +25,6 @@ function parseMods(parsedBoard, parsedSquare, color){
         mods[mod](parsedBoard, color)
     }
 }
+
 exports.parseMods = parseMods
 exports.mods = mods

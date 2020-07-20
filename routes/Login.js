@@ -9,7 +9,7 @@ router.get('/', (req, res) =>{
     var send = req.session.loginResponse
     console.log("Message: " + send)
     delete req.session.loginResponse
-    res.render('login', {message: send})
+    res.render('login', {message: send, user: ""})
 })
 
 router.post('/', (req,res) => {

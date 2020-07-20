@@ -55,7 +55,9 @@ function createPlaySocket(sessionParser){
             }
             game.pieces = JSON.parse(game.pieces)
             cleanPieceFileRead.cleanPieces(game.pieces)
-            gameControl.parseFEN(board, match.FEN, game.pieces)
+            gameControl.parseFEN(board, match.FENHistory[match.FENHistory.length-1], game.pieces)
+            gameControl.activateAttributeMods(board)
+
             return {
                 game: game,
                 match: match
@@ -65,13 +67,14 @@ function createPlaySocket(sessionParser){
     
     async function updateFEN(FEN){
         var client = await MongoClient.connect(url)
-        await client.db('FairyChessMaker').collection('Matches').updateOne({_id: ObjectId(matchId)}, { $set: {FEN: FEN}})
+        await client.db('FairyChessMaker').collection('Matches').updateOne({_id: ObjectId(matchId)}, { $push: {FENHistory: FEN}})
     }
 
-    async function updateTurn(color){
+    async function updateMatch(move, color){
         var client = await MongoClient.connect(url)
-        await client.db('FairyChessMaker').collection('Matches').updateOne({_id: ObjectId(matchId)}, { $set: {turn: color}})
+        await client.db('FairyChessMaker').collection('Matches').updateOne({_id: ObjectId(matchId)}, { $set: {turn: color}, $push: {moveHistory: move}})
     }
+
     var messageResponse = {
         matchId: function(message, ws, req){
             getData(message, ws, req).then((response) => {
@@ -86,11 +89,11 @@ function createPlaySocket(sessionParser){
             ws.send(JSON.stringify(highlightMoveList))
         },
         move: function(message, ws, req){
+            var FEN = gameControl.createFEN(board)
             var fromColor = board[IndexAndCoordinates.coordinatesToIndex[message.move.from]].color
             if((whiteId == req.session.userId && fromColor == 'w') || (blackId == req.session.userId && fromColor == 'b')){
                 if(fromColor == turn){   
                     var movement = move.makeMove(board, message.move.from, message.move.to)
-                    console.log(movement)
                     if(movement!=false){
                         if(turn == 'w'){
                             turn = 'b'
@@ -98,12 +101,13 @@ function createPlaySocket(sessionParser){
                         else{
                             turn = 'w'
                         }
-                        updateTurn(turn)
+                        FEN = gameControl.createFEN(board)
+                        updateMatch(movement, turn)
                     }
                 }
             }
             var moveResponse = {
-                FEN: gameControl.createFEN(board),
+                FEN: FEN,
                 turn: turn
             }
             updateFEN(moveResponse.FEN)
