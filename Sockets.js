@@ -59,7 +59,6 @@ function createPlaySocket(sessionParser){
             gameControl.activateAttributeMods(board)
 
             return {
-                game: game,
                 match: match
             }
         }

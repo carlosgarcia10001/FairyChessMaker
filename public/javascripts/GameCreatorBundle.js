@@ -719,7 +719,6 @@ var mods = {
     },
     protectKingly: function(board, square, moveList){
         var color = board[square].color
-        console.log(moveListCoordinates(moveList))
         for(var i = moveList.length-1; i >= 0; i--){
             var copyBoard = JSON.parse(JSON.stringify(board))
             var movement = makeMove(copyBoard, square, moveList[i], true)

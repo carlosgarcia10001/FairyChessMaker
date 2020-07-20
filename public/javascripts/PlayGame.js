@@ -15,41 +15,47 @@ $(document).ready(function(){
             socket.send(JSON.stringify({matchId: matchId}));
         });
 
-        socket.addEventListener('message', function (message) {
-            var data = message.data
-            if(data.charAt(0)=='{'){ //A JSON would imply that the game is being setup or is being updated based on the opposing player's moves
-                data = JSON.parse(message.data)
-                if(data.match){
-                    if(data.match.FENHistory){
-                        FEN = data.match.FENHistory[data.match.FENHistory.length-1]
-                        htmlBoard.position(FEN)  
-                    }
-                    if(data.match.playerColor){
-                        playerColor = data.match.playerColor
-                    }
-                    if(data.match.turn){
-                        turn = data.match.turn
-                        changeGameStatus(turn)
-                    }
+        var messageResponse = {
+            match: function(data){
+                if(data.match.FENHistory){
+                    FEN = data.match.FENHistory[data.match.FENHistory.length-1]
+                    htmlBoard.position(FEN)  
                 }
-                if(data.FEN){
-                    if(FEN!=data.FEN){
-                        htmlBoard.position(data.FEN)
-                    }
-                    FEN = data.FEN 
+                if(data.match.playerColor){
+                    playerColor = data.match.playerColor
                 }
-                if(data.highlightMoveList){
-                    var moveList = data.highlightMoveList
-                    var square = ""
-                    highlightedMoves = moveList
-                    htmlBoardControl.updateHighlightedMoves(htmlSquares,locateHtmlSquares, moveList)
-                }
-                if(data.turn){
-                    turn = data.turn
+                if(data.match.turn){
+                    turn = data.match.turn
                     changeGameStatus(turn)
                 }
-                if(data.winner){
-                    changeGameStatus(data.winner)
+            },
+            FEN: function(data){
+                if(FEN!=data.FEN){
+                    htmlBoard.position(data.FEN)
+                }
+                FEN = data.FEN 
+            },
+            highlightMoveList: function(data){
+                var moveList = data.highlightMoveList
+                highlightedMoves = moveList
+                htmlBoardControl.updateHighlightedMoves(htmlSquares,locateHtmlSquares, moveList)
+            },
+            turn: function(data){
+                turn = data.turn
+                changeGameStatus(turn)
+            },
+            winner: function(data){
+                changeGameStatus(data.winner)
+            }
+        }
+        socket.addEventListener('message', function (message) {
+            var data = message.data
+            if(data.charAt(0)=='{'){ 
+                data = JSON.parse(message.data)
+                var keys = Object.keys(data)
+                console.log(keys)
+                for(var i = 0; i < keys.length; i++){
+                    messageResponse[keys[i]](data)
                 }
             }
             else if(message.data == "/browse"){ //Only occurs due to an error
@@ -70,7 +76,8 @@ $(document).ready(function(){
         w: "White's Turn",
         b: "Black's Turn",
         whiteWin: "White Won",
-        blackWin: "Black Won"
+        blackWin: "Black Won",
+        draw: "It's a draw"
     }
 
     function changeGameStatus(status){
