@@ -234,7 +234,7 @@ describe('GAME', function(){
             boardState.printBoard(testBoard)
             var FEN = game.createFEN(testBoard)
             console.log(FEN)
-            assert.isTrue(FEN=='2d5/8/A1p1B3/8/2C5/8/8')
+            assert.isTrue(FEN=='2d5/8/A1p1B3/8/2C5/8/8/')
             })
         })
     describe('ParseFEN', function() {
@@ -261,11 +261,11 @@ describe('GAME', function(){
    describe('makeMove', function (){
         it('Should allow a piece to move if it is legal, and not allow illegal moves', function(){
             let testBoard = setupTestBoard()
-            var moveMade = move.makeMove(testBoard, 'w', 'c6', 35)
+            var moveMade = move.makeMove(testBoard, 'c6', 35)
             boardState.printBoard(testBoard)
             console.log(moveMade)
             assert.isTrue(moveMade == 'c6-d6',"Valid move not allowed")
-            moveMade = move.makeMove(testBoard, 'w', 'd6', 'h1')
+            moveMade = move.makeMove(testBoard, 'd6', 'h1')
             assert.isFalse(moveMade, 'Illegal move not blocked')
         })
     })

@@ -1,38 +1,4 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-var boardState = require('./BoardState')
-var helper = require('./AttributeModsHelper')
-var mods ={
-    beacon: function(board, color){
-        var friendlySquares = boardState.pieceIndex(board, color)
-        for(var i = 0; i < friendlySquares.length; i++){
-            if(!boardState.pieceHasAttributeMod(board, friendlySquares[i],'beacon')){
-                helper.addMoveMod(board, friendlySquares[i], 'teleportToBeacon')
-            }
-        }
-    },
-    kingly: function(board, color){
-        var friendlySquares = boardState.pieceIndex(board,color)
-        for(var i = 0; i < friendlySquares.length; i++){
-            helper.addMoveMod(board, friendlySquares[i], 'protectKingly')
-        }
-    } 
-}
-
-function parseMods(parsedBoard, parsedSquare, color){
-    for(var i = 0; i < parsedBoard[parsedSquare].attrmods.length;i++){
-        var mod = parsedBoard[parsedSquare].attrmods[i]
-        mods[mod](parsedBoard, color)
-    }
-}
-exports.parseMods = parseMods
-exports.mods = mods
-},{"./AttributeModsHelper":2,"./BoardState":3}],2:[function(require,module,exports){
-function addMoveMod(board, square, mod){
-    board[square].movmods.push(mod)
-}
-
-exports.addMoveMod = addMoveMod
-},{}],3:[function(require,module,exports){
 var indexToCoordinates = {}
 var coordinatesToIndex = {}
 var indexToValidIndex = {}
@@ -100,193 +66,7 @@ if(typeof exports != 'undefined'){
     exports.enemySquare = enemySquare
     exports.pieceHasAttributeMod = pieceHasAttributeMod
 }
-},{}],4:[function(require,module,exports){
-function cleanPieces(pieces){
-    var keys = Object.keys(pieces)
-    for(var i = 0; i < keys.length;i++){
-        cleanPiece(pieces[keys[i]])
-    }
-}
-
-function cleanPiece(piece){
-    piece.hp = Number(piece.hp)
-    piece.dmg = Number(piece.dmg)
-    if(!piece.mov){
-        piece.mov = {
-            paths: [],
-            space: [], 
-            attPaths: [],
-            attSpace: []
-        }
-    }
-    var mov = {
-        paths: [],
-        space: [],
-        attPaths: [],
-        attSpace: []
-    }
-    if(typeof(piece.attrmods) == 'undefined'){
-        piece.attrmods = []
-    }
-    if(typeof(piece.movmods) == 'undefined'){
-        piece.movmods = []
-    }
-    for(var i = 0; i < piece.mov.paths.length; i++){
-        mov.paths.push([])
-        for(var j = 0; j < piece.mov.paths[i].length; j++){
-            mov.paths[i].push(Number(piece.mov.paths[i][j]))
-        }
-    }
-    for(var i = 0; i < piece.mov.space.length; i++){
-        mov.space.push([])
-        for(var j = 0; j < piece.mov.space[i].length; j++){
-            mov.space[i].push(Number(piece.mov.space[i][j]))
-        }
-    }
-    for(var i = 0; i < piece.mov.attPaths.length; i++){
-        mov.attPaths.push([])
-        for(var j = 0; j < piece.mov.attPaths[i].length; j++){
-            mov.attPaths[i].push(Number(piece.mov.attPaths[i][j]))
-        }
-    }
-    for(var i = 0; i < piece.mov.attSpace.length; i++){
-        mov.attSpace.push([])
-        for(var j = 0; j < piece.mov.attSpace[i].length; j++){
-            mov.attSpace[i].push(Number(piece.mov.attSpace[i][j]))
-        }
-    }
-    piece.mov = mov
-}
-
-exports.cleanPieces = cleanPieces
-exports.cleanPiece = cleanPiece
-},{}],5:[function(require,module,exports){
-var boardState  = require('./BoardState')
-var piece = require('./Piece')
-var move = require('./Move')
-var AttributeMods = require('./AttributeMods')
-var indexAndCoordinates = require('./IndexAndCoordinates')
-var board = new Array(128)
-var turn = 'w'
-var boardHistory = []
-
-function addBoardStateToHistory(parsedBoard, parsedTurn){
-    parsedBoardHistory.push({
-        board: parsedBoard.slice(),
-        turn: parsedTurn
-    })
-}
-
-function initializeBoard(parsedBoard){
-    var createdPiece = ""
-    if(typeof(piece)=='undefined'){
-        createdPiece = createPiece()
-    }
-    else{
-        createdPiece = piece.createPiece() 
-    }
-    for(var i = 0; i < parsedBoard.length; i++){
-         parsedBoard[i] = createdPiece
-     }
-}
-
-function placePieceOnBoard(parsedBoard, parsedPiece, parsedSquare){
-        parsedBoard[parsedSquare] = parsedPiece
-        AttributeMods.parseMods(parsedBoard, parsedSquare, parsedPiece.color)
-}
-
-function createFEN(parsedBoard){
-    var count = 0;
-    var FEN = ""
-    for(var i = 0; i < 120; i++){
-        if(!boardState.validSquare(i)){
-            i+=8
-            if(count>0){
-                FEN+=count
-            }
-            if(i<112){
-                FEN+='/'
-            }
-            count = 0
-        }
-        if(boardState.validSquare(i) && boardState.emptySquare(parsedBoard, i)){
-            count++
-        }
-        if(boardState.validSquare(i) && boardState.occupiedSquare(parsedBoard, i)){
-            if(count>0){
-                FEN+=count
-            }
-            count = 0
-            FEN+=parsedBoard[i].id
-        }
-    }
-    return FEN
-}
-
-function parseFEN(parsedBoard, parsedFEN, parsedPieces){
-    var FENcopy = parsedFEN.substring(0)
-    let letter = 97
-    let number = 8
-    var keys = Object.keys(parsedPieces)
-    while(FENcopy != ''){
-        if(FENcopy.startsWith('/')){
-            letter = 97
-            number--
-        }
-        else if(!isNaN(Number(FENcopy.charAt(0)))){
-            var count = Number(FENcopy.charAt(0))
-            for(var i = 0; i < count; i++){
-                parsedBoard[indexAndCoordinates.coordinatesToIndex[String.fromCharCode(letter)+number]] = piece.createPiece()
-                letter++
-            }
-        }
-        else{
-            for(var i = 0; i < keys.length; i++){
-                if(parsedPieces[keys[i]].id == FENcopy.charAt(0)){
-                    parsedBoard[indexAndCoordinates.coordinatesToIndex[String.fromCharCode(letter)+number]] = parsedPieces[keys[i]]
-                }
-            }
-            letter++
-        }
-        FENcopy = FENcopy.substring(1)
-    }
-}
-
-function undoMove(parsedBoard, parsedBoardHistory){
-    parsedBoardHistory.splice(parsedBoardHistory.length-1,1)
-    parsedBoard = parsedBoardHistory[parsedBoardHistory.length-1].board.slice()
-    turn = parsedBoardHistory[parsedBoardHistory.length-1].turn
-}
-
-function checkMate(board, color){
-    var enemyColor = 'w'
-    if(color = 'w'){
-        enemyColor = 'b'
-    }
-    var enemyPositions = boardState.pieceIndex(board, enemyColor)
-    for(var i = 0; i < enemyPositions.length;i++){
-        enemyMoveList = move.pieceMoveList(board, enemyPositions[i])
-        for(var j = 0; j < enemyMoveList.length;j++){
-            var copyBoard = board.slice()
-            makeMove(copyBoard, color, enemyPositions[i], enemyMoveList[j], true)
-            if(!check(copyBoard, color)){
-                return false
-            }
-        }
-    }
-    return true
-}
-
-initializeBoard(board)
-exports.board = board
-exports.turn = turn
-exports.initializeBoard=initializeBoard
-exports.placePieceOnBoard=placePieceOnBoard
-exports.checkMate = checkMate
-exports.boardHistory = boardHistory
-exports.createFEN = createFEN
-exports.parseFEN = parseFEN
-},{"./AttributeMods":1,"./BoardState":3,"./IndexAndCoordinates":6,"./Move":7,"./Piece":8}],6:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 var indexToCoordinates = {}
 var coordinatesToIndex = {}
 
@@ -311,11 +91,12 @@ if(typeof exports != 'undefined'){
     exports.indexToCoordinates=indexToCoordinates
     exports.coordinatesToIndex=coordinatesToIndex
 }
-},{}],7:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 var boardState = require('./BoardState')
 var pieceAttack = require('./PieceAttack')
 var piece = require('./Piece')
 var indexAndCoordinates = require('./IndexAndCoordinates')
+
 var mods = {
     ethereal: function(board, square, moveList){
         loop1:
@@ -422,14 +203,40 @@ var mods = {
     },
     protectKingly: function(board, square, moveList){
         var color = board[square].color
-        for(var i = 0; i < moveList.length; i++){
-            var copyBoard = board.slice()
-            makeMove(copyBoard, color, square, moveList[i], true)
+        for(var i = moveList.length-1; i >= 0; i--){
+            var copyBoard = JSON.parse(JSON.stringify(board))
+            var movement = makeMove(copyBoard, square, moveList[i], true)
             if(check(copyBoard, color)){
                 moveList.splice(i,1)
             }
         }
+    }    
+}
+
+function check(board, color){
+    var enemyColor = 'w'
+    if(color == 'w'){
+        enemyColor = 'b'
     }
+    var enemyMoveList = masterMoveList(board, enemyColor, ['protectKingly'])
+    for(var i = 0; i < enemyMoveList.length;i++){
+        if(boardState.pieceHasAttributeMod(board, enemyMoveList[i], 'kingly') && board[enemyMoveList[i]].color==color){
+            return true
+        }
+    }
+    return false
+}
+
+function checkMate(board, color){
+    var enemyColor = 'w'
+    if(color = 'w'){
+        enemyColor = 'b'
+    }
+    var possibleMoves = masterMoveList(board, color)
+    if(possibleMoves.length==0 && check(board, color)){
+        return true
+    }
+    return false
 }
 
 function addTeleportMods(){
@@ -469,21 +276,23 @@ function validBeaconTeleport(board, square, beaconIndex, offset){
     return boardState.validSquare(parsedSquare) && (pieceAttack.attackTypes[board[square].atttype](board, square, parsedSquare) || boardState.emptySquare(board, parsedSquare))
 }
 
-function parseMoveMods(board, square, moveList){
+function parseMoveMods(board, square, moveList, ignoreList = []){
     for(let i = 0; i < board[square].movmods.length;i++){
         var mod = board[square].movmods[i]
-        mods[mod](board, square, moveList)
+        if(ignoreList.indexOf(mod)==-1){
+            mods[mod](board, square, moveList)
+        }
     }
 }
 
-var masterMoveList = function(board, color){
+var masterMoveList = function(board, color, ignoreList){
     var masterMoveList = []
     for(var i = 0; i < 120; i++){
         if(!boardState.validSquare(i)){
             i+=8
         }
         if(board[i].color==color){
-            var moveList = pieceMoveList(board, i)
+            var moveList = pieceMoveList(board, i, ignoreList)
             for(var j = 0; j < moveList.length;j++){
                 if(masterMoveList.indexOf(moveList[j])==-1){
                     masterMoveList.push(moveList[j])
@@ -494,14 +303,14 @@ var masterMoveList = function(board, color){
     return masterMoveList
 }
 
-var pieceMoveList = function(board, square){  
+var pieceMoveList = function(board, square, ignoreList){  
     if(typeof(square)=='string'){
         square = indexAndCoordinates.coordinatesToIndex[square]
     }
     else if(typeof(square)!='number'){
         return false
     }
-    moveList = []
+    var moveList = []
     loop1:
     for(var i = 0; i < board[square].mov.paths.length;i++){
         var parsedSquare = square + board[square].mov.paths[i][0]
@@ -599,7 +408,7 @@ var pieceMoveList = function(board, square){
             }
         }
     }*/
-    parseMoveMods(board,square,moveList)
+    parseMoveMods(board,square,moveList, ignoreList)
     return moveList
 }
 
@@ -611,21 +420,11 @@ function moveListCoordinates(moveList){
     return coordinates
 }
 
-function check(board, color){
-    var enemyColor = 'w'
-    if(color = 'w'){
-        enemyColor = 'b'
+var makeMove = function(parsedBoard, initial, target, dummyMove = false){
+    if(initial.length == 5){
+        target = initial.substring(3)
+        initial = initial.substring(0,2)
     }
-    var enemyMoveList = masterMoveList(board, enemyColor)
-    for(var i = 0; i < enemyMoveList.length;i++){
-        if(boardState.pieceHasAttributeMod(board, enemyMoveList[i], 'kingly') && board[enemyMoveList[i]].color==color){
-            return true
-        }
-    }
-    return false
-}
-
-var makeMove = function(parsedBoard, turn, initial, target, dummyMove = false){
     if(typeof(initial)=='string'){
         initial = indexAndCoordinates.coordinatesToIndex[initial]
     }
@@ -642,12 +441,6 @@ var makeMove = function(parsedBoard, turn, initial, target, dummyMove = false){
     else if(pieceMoveList(parsedBoard,initial).indexOf(target)!=-1){
         parsedBoard[target] = parsedBoard[initial]
         parsedBoard[initial] = piece.createPiece() 
-        if(turn == 'w'){
-            turn = 'b'
-        }
-        else{
-            turn = 'w'
-        }
         return indexAndCoordinates.indexToCoordinates[initial].toLowerCase() + "-" + indexAndCoordinates.indexToCoordinates[target].toLowerCase()
     } 
     return false 
@@ -658,8 +451,8 @@ exports.makeMove = makeMove
 exports.pieceMoveList = pieceMoveList
 exports.masterMoveList = masterMoveList
 exports.moveListCoordinates = moveListCoordinates
-
-},{"./BoardState":3,"./IndexAndCoordinates":6,"./Piece":8,"./PieceAttack":9}],8:[function(require,module,exports){
+exports.checkMate = checkMate
+},{"./BoardState":1,"./IndexAndCoordinates":2,"./Piece":4,"./PieceAttack":5}],4:[function(require,module,exports){
 function createPiece(id= " ", color = "", hp = 1, dmg = 1, mov = {
     paths: [],
     space: [],
@@ -728,7 +521,7 @@ exports.createPieces = createPieces
 exports.createMov = createMov
 exports.addPath = addPath
 exports.addAttPath = addAttPath
-},{}],9:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 var boardState = require('./BoardState')
 var attackTypes = { 
     normal: function(board, initial, target){ 
@@ -751,19 +544,13 @@ function validAttack(board, square, target){
 
 exports.validAttack = validAttack
 exports.attackTypes = attackTypes
-},{"./BoardState":3}],10:[function(require,module,exports){
-var move = require('./Move')
-var piece = require('./Piece')
-var pieces = piece.createPieces()
-var cleanPieceFileRead = require('./CleanPieceFileRead')
-var game = require('./Game')
-var board = new Array(128)
+},{"./BoardState":1}],6:[function(require,module,exports){
 var htmlBoardControl = require('./htmlBoardControl')
-var boardState = require('./BoardState')
-const socket = new WebSocket('ws://localhost:3000')
+const socket = new WebSocket('ws://localhost:3000/play/'+window.location.pathname.substring(6))
 var FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
-game.initializeBoard(board)
-
+var highlightedMoves
+var playerColor
+var turn
 $(document).ready(function(){
     var htmlSquares = []
     var locateHtmlSquares = {}
@@ -771,32 +558,93 @@ $(document).ready(function(){
         htmlSquares = htmlBoardControl.createHtmlSquares()
         locateHtmlSquares = htmlBoardControl.createLocateHtmlSquares(htmlSquares)
         var matchId = window.location.pathname.substring(6)  
-
         socket.addEventListener('open', function (event) {               
-            socket.send(JSON.stringify({id: matchId}));
+            socket.send(JSON.stringify({matchId: matchId}));
         });
 
+        var messageResponse = {
+            match: function(data){
+                if(data.match.FENHistory){
+                    FEN = data.match.FENHistory[data.match.FENHistory.length-1]
+                    htmlBoard.position(FEN)  
+                }
+                if(data.match.playerColor){
+                    playerColor = data.match.playerColor
+                    var orientation
+                    if(playerColor == 'w'){
+                        orientation = 'white'
+                    }
+                    else{
+                        orientation = 'black'
+                    }
+                    htmlBoard.orientation(orientation)
+                    htmlSquares = htmlBoardControl.createHtmlSquares()
+                    locateHtmlSquares = htmlBoardControl.createLocateHtmlSquares(htmlSquares)
+                }
+                if(data.match.turn){
+                    console.log(data)
+                    turn = data.match.turn
+                    changeGameStatus(turn)
+                }
+                if(data.match.winner && data.match.winner!=false){
+                    var winner = 'draw'
+                    if(data.match.winner=='w'){
+                        winner = 'whiteWin'
+                    }
+                    else if (data.match.winner=='b'){
+                        winner = 'blackWin'
+                    }
+                    var player 
+                    playerColor = player
+                    changeGameStatus(winner)
+                }
+            },
+            FEN: function(data){
+                if(FEN!=data.FEN){
+                    htmlBoard.position(data.FEN)
+                }
+                FEN = data.FEN 
+            },
+            highlightMoveList: function(data){
+                console.log(data.highlightMoveList)
+                var moveList = data.highlightMoveList
+                highlightedMoves = moveList
+                htmlBoardControl.updateHighlightedMoves(htmlSquares,locateHtmlSquares, moveList)
+            },
+            turn: function(data){
+                turn = data.turn
+                changeGameStatus(turn)
+            },
+            winner: function(data){
+                if(data.winner!=false){
+                    var winner = 'draw'
+                    if(data.winner=='w'){
+                        winner = 'whiteWin'
+                    }
+                    else if (data.winner=='b'){
+                        winner = 'blackWin'
+                    }
+                    var player 
+                    playerColor = player
+                    changeGameStatus(winner)
+                }
+            }
+        }
         socket.addEventListener('message', function (message) {
             var data = message.data
-            if(data.charAt(0)=='{'){ //A JSON would imply that the game is being setup or is being updated based on the opposing player's moves
+            if(data.charAt(0)=='{'){ 
                 data = JSON.parse(message.data)
-                if(data.FEN){
-                    FEN = data.FEN
+                var keys = Object.keys(data)
+                console.log(keys)
+                console.log(data)
+                for(var i = 0; i < keys.length; i++){
+                    messageResponse[keys[i]](data)
                 }
-                if(data.Game){
-                    pieces = data.Game
-                }
-                cleanPieceFileRead.cleanPieces(pieces)
-                game.parseFEN(board, FEN, pieces)
-                console.log(FEN)
-                htmlBoard.position(FEN)
             }
             else if(message.data == "/browse"){ //Only occurs due to an error
-                window.location.assign(message)
+                window.location.assign(message.data)
             }
-            else{ //If a move is given 
-
-            }
+            
         });  
     })
 
@@ -804,32 +652,48 @@ $(document).ready(function(){
         pieceTheme: "../images/chesspieces/wikipedia/{piece}.png",
         draggable: true,
         onMouseoverSquare: onMouseoverSquare,
-        onDrop: onDrop
+        onDrop: onDrop,
+    }
+
+    var gameStatus = {
+        w: "White's Turn",
+        b: "Black's Turn",
+        whiteWin: "White Won",
+        blackWin: "Black Won",
+        draw: "It's a draw"
+    }
+
+    function changeGameStatus(status){
+        $("#gameStatus").text(gameStatus[status])
     }
 
     function onMouseoverSquare(square, piece){
+        var highlightMoveList = {
+            highlightMoveList: square
+        }
+        socket.send(JSON.stringify(highlightMoveList))
         if(piece==false){
             htmlBoardControl.unHighlightValidMoves(htmlSquares)
-        }
-        else{
-            htmlBoardControl.updateHighlightedMoves(board,square,htmlSquares,locateHtmlSquares)
         }
     }
 
     function onDrop(source, target, piece){
-        var movement = move.makeMove(board, 'w', source, target)
-        socket.send(movement)
-        console.log(pieces)
-        boardState.printBoard(board)
-        if(movement == false){
+        var parsedMove = {
+            move: {
+                from: source,
+                to: target
+            }
+        }
+        if(highlightedMoves.indexOf(target)==-1 || turn!=playerColor || piece.charAt(0)!=playerColor){
             return 'snapback'
         }
+        socket.send(JSON.stringify(parsedMove))
 
     }
     var htmlBoard = Chessboard('myBoard',config)
     $(document).trigger('load')
 })
-},{"./BoardState":3,"./CleanPieceFileRead":4,"./Game":5,"./Move":7,"./Piece":8,"./htmlBoardControl":11}],11:[function(require,module,exports){
+},{"./htmlBoardControl":7}],7:[function(require,module,exports){
 var move = require('./Move')
 var indexAndCoordinates = require('./IndexAndCoordinates')
 var highlightMove = '#a9a9a9'
@@ -846,8 +710,9 @@ function createLocateHtmlSquares(htmlSquares){
     return locateSquares
 }
 
-function highlightValidMoves(parsedBoard, parsedIndex, locateHtmlSquares){
-    var moveset = currentPieceMoveCoordinates(parsedBoard, parsedIndex)
+function highlightValidMoves(locateHtmlSquares, moveList){
+    var moveset = moveList
+    
     for(var i = 0; i < moveset.length; i++){
         if(!($(moveset[i]).hasClass('moveset'))){
             $(locateHtmlSquares[moveset[i]]).addClass("moveset")
@@ -864,10 +729,27 @@ function unHighlightValidMoves(htmlSquares){
         }
     }
 }
-function updateHighlightedMoves(parsedHtmlBoard, parsedIndex, htmlSquares, locateHtmlSquares){
+
+function updateHighlightedMoves(htmlSquares, locateHtmlSquares, moveList){
     unHighlightValidMoves(htmlSquares)
-    highlightValidMoves(parsedHtmlBoard, parsedIndex, locateHtmlSquares)
+    highlightValidMoves(locateHtmlSquares, moveList)
 }
+
+function updateHighlightedMovesOnGameCreator(parsedHtmlBoard, parsedIndex, htmlSquares, locateHtmlSquares){
+    unHighlightValidMoves(htmlSquares)
+    highlightValidMovesOnGameCreator(parsedHtmlBoard, parsedIndex, locateHtmlSquares)
+}
+
+function highlightValidMovesOnGameCreator(parsedBoard, parsedIndex, locateHtmlSquares){
+    var moveset = currentPieceMoveCoordinates(parsedBoard, parsedIndex)
+    for(var i = 0; i < moveset.length; i++){
+        if(!($(moveset[i]).hasClass('moveset'))){
+            $(locateHtmlSquares[moveset[i]]).addClass("moveset")
+            $(locateHtmlSquares[moveset[i]]).css('background', highlightMove)
+        }
+    }
+}
+
 
 function currentPieceMoveCoordinates(parsedHtmlBoard, parsedIndex){
     var coordinates = []
@@ -887,5 +769,6 @@ exports.createLocateHtmlSquares = createLocateHtmlSquares
 exports.updateHighlightedMoves = updateHighlightedMoves
 exports.highlightValidMoves = highlightValidMoves
 exports.unHighlightValidMoves = unHighlightValidMoves
-
-},{"./IndexAndCoordinates":6,"./Move":7}]},{},[10]);
+exports.updateHighlightedMovesOnGameCreator = updateHighlightedMovesOnGameCreator
+exports.highlightValidMovesOnGameCreator = highlightValidMovesOnGameCreator
+},{"./IndexAndCoordinates":2,"./Move":3}]},{},[6]);

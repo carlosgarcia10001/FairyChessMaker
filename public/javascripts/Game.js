@@ -7,29 +7,24 @@ var board = new Array(128)
 var turn = 'w'
 var boardHistory = []
 
-function addBoardStateToHistory(parsedBoard, parsedTurn){
-    parsedBoardHistory.push({
-        board: parsedBoard.slice(),
-        turn: parsedTurn
-    })
-}
-
 function initializeBoard(parsedBoard){
-    var createdPiece = ""
-    if(typeof(piece)=='undefined'){
-        createdPiece = createPiece()
-    }
-    else{
-        createdPiece = piece.createPiece() 
-    }
     for(var i = 0; i < parsedBoard.length; i++){
+        var createdPiece = piece.createPiece()
          parsedBoard[i] = createdPiece
      }
 }
 
 function placePieceOnBoard(parsedBoard, parsedPiece, parsedSquare){
         parsedBoard[parsedSquare] = parsedPiece
-        AttributeMods.parseMods(parsedBoard, parsedSquare, parsedPiece.color)
+        activateAttributeMods(parsedBoard)
+}
+
+function activateAttributeMods(parsedBoard){
+    for(var i = 0; i < parsedBoard.length;i++){
+        if(boardState.validSquare(i) && parsedBoard[i].attrmods && parsedBoard[i].attrmods.length>0){
+            AttributeMods.parseMods(parsedBoard, i, parsedBoard[i].color)
+        }
+    }
 }
 
 function createFEN(parsedBoard){
@@ -41,7 +36,7 @@ function createFEN(parsedBoard){
             if(count>0){
                 FEN+=count
             }
-            if(i<112){
+            if(i<113){
                 FEN+='/'
             }
             count = 0
@@ -89,37 +84,22 @@ function parseFEN(parsedBoard, parsedFEN, parsedPieces){
     }
 }
 
-function undoMove(parsedBoard, parsedBoardHistory){
-    parsedBoardHistory.splice(parsedBoardHistory.length-1,1)
-    parsedBoard = parsedBoardHistory[parsedBoardHistory.length-1].board.slice()
-    turn = parsedBoardHistory[parsedBoardHistory.length-1].turn
+var game = {
+    board: new Array(128),
+    turn: 'w',
+    pieces: piece.createPieces(),
+    FEN: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+    winCondition: "checkMate"
 }
 
-function checkMate(board, color){
-    var enemyColor = 'w'
-    if(color = 'w'){
-        enemyColor = 'b'
-    }
-    var enemyPositions = boardState.pieceIndex(board, enemyColor)
-    for(var i = 0; i < enemyPositions.length;i++){
-        enemyMoveList = move.pieceMoveList(board, enemyPositions[i])
-        for(var j = 0; j < enemyMoveList.length;j++){
-            var copyBoard = board.slice()
-            makeMove(copyBoard, color, enemyPositions[i], enemyMoveList[j], true)
-            if(!check(copyBoard, color)){
-                return false
-            }
-        }
-    }
-    return true
-}
+parseFEN(game.board,game.FEN,game.pieces)
 
-initializeBoard(board)
+exports.game = game
 exports.board = board
 exports.turn = turn
 exports.initializeBoard=initializeBoard
 exports.placePieceOnBoard=placePieceOnBoard
-exports.checkMate = checkMate
 exports.boardHistory = boardHistory
 exports.createFEN = createFEN
 exports.parseFEN = parseFEN
+exports.activateAttributeMods = activateAttributeMods

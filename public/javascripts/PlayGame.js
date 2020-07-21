@@ -1,15 +1,9 @@
-var move = require('./Move')
-var piece = require('./Piece')
-var pieces = piece.createPieces()
-var cleanPieceFileRead = require('./CleanPieceFileRead')
-var game = require('./Game')
-var board = new Array(128)
 var htmlBoardControl = require('./htmlBoardControl')
-var boardState = require('./BoardState')
-const socket = new WebSocket('ws://localhost:3000')
+const socket = new WebSocket('ws://localhost:3000/play/'+window.location.pathname.substring(6))
 var FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
-game.initializeBoard(board)
-
+var highlightedMoves
+var playerColor
+var turn
 $(document).ready(function(){
     var htmlSquares = []
     var locateHtmlSquares = {}
@@ -17,32 +11,93 @@ $(document).ready(function(){
         htmlSquares = htmlBoardControl.createHtmlSquares()
         locateHtmlSquares = htmlBoardControl.createLocateHtmlSquares(htmlSquares)
         var matchId = window.location.pathname.substring(6)  
-
         socket.addEventListener('open', function (event) {               
-            socket.send(JSON.stringify({id: matchId}));
+            socket.send(JSON.stringify({matchId: matchId}));
         });
 
+        var messageResponse = {
+            match: function(data){
+                if(data.match.FENHistory){
+                    FEN = data.match.FENHistory[data.match.FENHistory.length-1]
+                    htmlBoard.position(FEN)  
+                }
+                if(data.match.playerColor){
+                    playerColor = data.match.playerColor
+                    var orientation
+                    if(playerColor == 'w'){
+                        orientation = 'white'
+                    }
+                    else{
+                        orientation = 'black'
+                    }
+                    htmlBoard.orientation(orientation)
+                    htmlSquares = htmlBoardControl.createHtmlSquares()
+                    locateHtmlSquares = htmlBoardControl.createLocateHtmlSquares(htmlSquares)
+                }
+                if(data.match.turn){
+                    console.log(data)
+                    turn = data.match.turn
+                    changeGameStatus(turn)
+                }
+                if(data.match.winner && data.match.winner!=false){
+                    var winner = 'draw'
+                    if(data.match.winner=='w'){
+                        winner = 'whiteWin'
+                    }
+                    else if (data.match.winner=='b'){
+                        winner = 'blackWin'
+                    }
+                    var player 
+                    playerColor = player
+                    changeGameStatus(winner)
+                }
+            },
+            FEN: function(data){
+                if(FEN!=data.FEN){
+                    htmlBoard.position(data.FEN)
+                }
+                FEN = data.FEN 
+            },
+            highlightMoveList: function(data){
+                console.log(data.highlightMoveList)
+                var moveList = data.highlightMoveList
+                highlightedMoves = moveList
+                htmlBoardControl.updateHighlightedMoves(htmlSquares,locateHtmlSquares, moveList)
+            },
+            turn: function(data){
+                turn = data.turn
+                changeGameStatus(turn)
+            },
+            winner: function(data){
+                if(data.winner!=false){
+                    var winner = 'draw'
+                    if(data.winner=='w'){
+                        winner = 'whiteWin'
+                    }
+                    else if (data.winner=='b'){
+                        winner = 'blackWin'
+                    }
+                    var player 
+                    playerColor = player
+                    changeGameStatus(winner)
+                }
+            }
+        }
         socket.addEventListener('message', function (message) {
             var data = message.data
-            if(data.charAt(0)=='{'){ //A JSON would imply that the game is being setup or is being updated based on the opposing player's moves
+            if(data.charAt(0)=='{'){ 
                 data = JSON.parse(message.data)
-                if(data.FEN){
-                    FEN = data.FEN
+                var keys = Object.keys(data)
+                console.log(keys)
+                console.log(data)
+                for(var i = 0; i < keys.length; i++){
+                    messageResponse[keys[i]](data)
                 }
-                if(data.Game){
-                    pieces = data.Game
-                }
-                cleanPieceFileRead.cleanPieces(pieces)
-                game.parseFEN(board, FEN, pieces)
-                console.log(FEN)
-                htmlBoard.position(FEN)
             }
             else if(message.data == "/browse"){ //Only occurs due to an error
-                window.location.assign(message)
+                window.location.assign(message.data)
             }
-            else{ //If a move is given 
-
-            }
+            
         });  
     })
 
@@ -50,26 +105,42 @@ $(document).ready(function(){
         pieceTheme: "../images/chesspieces/wikipedia/{piece}.png",
         draggable: true,
         onMouseoverSquare: onMouseoverSquare,
-        onDrop: onDrop
+        onDrop: onDrop,
+    }
+
+    var gameStatus = {
+        w: "White's Turn",
+        b: "Black's Turn",
+        whiteWin: "White Won",
+        blackWin: "Black Won",
+        draw: "It's a draw"
+    }
+
+    function changeGameStatus(status){
+        $("#gameStatus").text(gameStatus[status])
     }
 
     function onMouseoverSquare(square, piece){
+        var highlightMoveList = {
+            highlightMoveList: square
+        }
+        socket.send(JSON.stringify(highlightMoveList))
         if(piece==false){
             htmlBoardControl.unHighlightValidMoves(htmlSquares)
-        }
-        else{
-            htmlBoardControl.updateHighlightedMoves(board,square,htmlSquares,locateHtmlSquares)
         }
     }
 
     function onDrop(source, target, piece){
-        var movement = move.makeMove(board, 'w', source, target)
-        socket.send(movement)
-        console.log(pieces)
-        boardState.printBoard(board)
-        if(movement == false){
+        var parsedMove = {
+            move: {
+                from: source,
+                to: target
+            }
+        }
+        if(highlightedMoves.indexOf(target)==-1 || turn!=playerColor || piece.charAt(0)!=playerColor){
             return 'snapback'
         }
+        socket.send(JSON.stringify(parsedMove))
 
     }
     var htmlBoard = Chessboard('myBoard',config)

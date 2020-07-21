@@ -5,9 +5,7 @@ var ObjectId = require('mongodb').ObjectId;
 var url = "mongodb://localhost:27017/"
 
 router.get('/', function (req, res){
-    res.render("PlayGame", {
-        user: req.session.user
-    })
+    res.redirect('/browse')
 })
 
 router.get('/:matchid', function(req, res){ //Look to see if id is in the database, if not, redirect to browse

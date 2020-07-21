@@ -64,13 +64,18 @@ app.use(function(err, req, res, next) {
     res.status(err.status || 500);
     res.render('error');
   });
-
-  
+var gameMap = new Map()
+var play
 var server = app.listen(port, () => console.log("app running"))
-
 server.on('upgrade', function upgrade(request, socket, head) {
-  var play = sockets.createPlaySocket(sessionParser)
-  play.handleUpgrade(request, socket, head, function(ws){
-    play.emit('connection', ws, request)
+    if(gameMap.get(request.url)){
+      play = gameMap.get(request.url)
+    }
+    else if(!gameMap.get(request.url)){
+      play = sockets.createPlaySocket(sessionParser)
+      gameMap.set(request.url,play)
+    }
+      play.handleUpgrade(request, socket, head, function(ws){
+      play.emit('connection', ws, request)
   })
 })

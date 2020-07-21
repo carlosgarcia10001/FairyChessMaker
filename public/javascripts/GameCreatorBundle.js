@@ -13,7 +13,9 @@ var mods ={
     kingly: function(board, color){
         var friendlySquares = boardState.pieceIndex(board,color)
         for(var i = 0; i < friendlySquares.length; i++){
-            helper.addMoveMod(board, friendlySquares[i], 'protectKingly')
+            if(board[friendlySquares[i]].movmods.indexOf('protectKingly')==-1){
+                helper.addMoveMod(board, friendlySquares[i], 'protectKingly')
+            }
         }
     } 
 }
@@ -24,6 +26,7 @@ function parseMods(parsedBoard, parsedSquare, color){
         mods[mod](parsedBoard, color)
     }
 }
+
 exports.parseMods = parseMods
 exports.mods = mods
 },{"./AttributeModsHelper":2,"./BoardState":3}],2:[function(require,module,exports){
@@ -110,29 +113,24 @@ var board = new Array(128)
 var turn = 'w'
 var boardHistory = []
 
-function addBoardStateToHistory(parsedBoard, parsedTurn){
-    parsedBoardHistory.push({
-        board: parsedBoard.slice(),
-        turn: parsedTurn
-    })
-}
-
 function initializeBoard(parsedBoard){
-    var createdPiece = ""
-    if(typeof(piece)=='undefined'){
-        createdPiece = createPiece()
-    }
-    else{
-        createdPiece = piece.createPiece() 
-    }
     for(var i = 0; i < parsedBoard.length; i++){
+        var createdPiece = piece.createPiece()
          parsedBoard[i] = createdPiece
      }
 }
 
 function placePieceOnBoard(parsedBoard, parsedPiece, parsedSquare){
         parsedBoard[parsedSquare] = parsedPiece
-        AttributeMods.parseMods(parsedBoard, parsedSquare, parsedPiece.color)
+        activateAttributeMods(parsedBoard)
+}
+
+function activateAttributeMods(parsedBoard){
+    for(var i = 0; i < parsedBoard.length;i++){
+        if(boardState.validSquare(i) && parsedBoard[i].attrmods && parsedBoard[i].attrmods.length>0){
+            AttributeMods.parseMods(parsedBoard, i, parsedBoard[i].color)
+        }
+    }
 }
 
 function createFEN(parsedBoard){
@@ -144,7 +142,7 @@ function createFEN(parsedBoard){
             if(count>0){
                 FEN+=count
             }
-            if(i<112){
+            if(i<113){
                 FEN+='/'
             }
             count = 0
@@ -192,40 +190,25 @@ function parseFEN(parsedBoard, parsedFEN, parsedPieces){
     }
 }
 
-function undoMove(parsedBoard, parsedBoardHistory){
-    parsedBoardHistory.splice(parsedBoardHistory.length-1,1)
-    parsedBoard = parsedBoardHistory[parsedBoardHistory.length-1].board.slice()
-    turn = parsedBoardHistory[parsedBoardHistory.length-1].turn
+var game = {
+    board: new Array(128),
+    turn: 'w',
+    pieces: piece.createPieces(),
+    FEN: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+    winCondition: "checkMate"
 }
 
-function checkMate(board, color){
-    var enemyColor = 'w'
-    if(color = 'w'){
-        enemyColor = 'b'
-    }
-    var enemyPositions = boardState.pieceIndex(board, enemyColor)
-    for(var i = 0; i < enemyPositions.length;i++){
-        enemyMoveList = move.pieceMoveList(board, enemyPositions[i])
-        for(var j = 0; j < enemyMoveList.length;j++){
-            var copyBoard = board.slice()
-            makeMove(copyBoard, color, enemyPositions[i], enemyMoveList[j], true)
-            if(!check(copyBoard, color)){
-                return false
-            }
-        }
-    }
-    return true
-}
+parseFEN(game.board,game.FEN,game.pieces)
 
-initializeBoard(board)
+exports.game = game
 exports.board = board
 exports.turn = turn
 exports.initializeBoard=initializeBoard
 exports.placePieceOnBoard=placePieceOnBoard
-exports.checkMate = checkMate
 exports.boardHistory = boardHistory
 exports.createFEN = createFEN
 exports.parseFEN = parseFEN
+exports.activateAttributeMods = activateAttributeMods
 },{"./AttributeMods":1,"./BoardState":3,"./IndexAndCoordinates":7,"./Move":8,"./Piece":9}],5:[function(require,module,exports){
 var piece = require('./Piece')
 var indexAndCoordinates = require('./IndexAndCoordinates')
@@ -281,7 +264,11 @@ var knightDownLeft1 = [14,14]
 var knightDownLeft2 = [31,31]
 var knightDownRight1 = [18,18]
 var knightDownRight2 = [33,33]
-
+var verticalSpace = 16
+var diagonalSpaceUpLeft = 17
+var diagonalSpaceUpRight = 15
+var diagonalSpaceDownLeft = 15
+var diagonalSpaceDownRight = 17
 game.initializeBoard(board)
 $(document).ready(function(){
     var htmlSquares = []
@@ -289,7 +276,6 @@ $(document).ready(function(){
     var pieces = piece.createPieces()
     var currentPiece = ""
     var currentPiecePosition = -1
-    console.log(pieces)
     $(document).on('load',function(){
         htmlSquares = htmlBoardControl.createHtmlSquares()
         locateHtmlSquares = htmlBoardControl.createLocateHtmlSquares(htmlSquares)
@@ -342,7 +328,7 @@ $(document).ready(function(){
             piece.addPath(pieces[currentPiece], diagonalPathDownLeft.path, diagonalPathDownLeft.space)
             piece.addPath(pieces[currentPiece], diagonalPathDownRight.path, diagonalPathDownRight.space)
             console.log(board[indexAndCoordinates.coordinatesToIndex[currentPiecePosition]])
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
         }
     })
     $("#kingMovement").click(function(){
@@ -356,7 +342,7 @@ $(document).ready(function(){
             piece.addPath(pieces[currentPiece], upLeft,[1])
             piece.addPath(pieces[currentPiece], upRight,[1])
             console.log(board[indexAndCoordinates.coordinatesToIndex[currentPiecePosition]])
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
     })
     $("#bishopMovement").click(function(){
         if(currentPiece!=""){
@@ -364,7 +350,7 @@ $(document).ready(function(){
             piece.addPath(pieces[currentPiece], diagonalPathUpRight.path,diagonalPathUpRight.space)
             piece.addPath(pieces[currentPiece], diagonalPathDownLeft.path,diagonalPathDownLeft.space)
             piece.addPath(pieces[currentPiece], diagonalPathDownRight.path,diagonalPathDownRight.space)
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
         }
     })
     $("#rookMovement").click(function(){
@@ -373,7 +359,7 @@ $(document).ready(function(){
             piece.addPath(pieces[currentPiece], horizontalPathRight.path,horizontalPathRight.space)
             piece.addPath(pieces[currentPiece], verticalPathUp.path,verticalPathUp.space)
             piece.addPath(pieces[currentPiece], verticalPathDown.path,verticalPathDown.space)
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
         }
     })
     $("#knightMovement").click(function(){
@@ -386,7 +372,7 @@ $(document).ready(function(){
             piece.addPath(pieces[currentPiece], knightDownLeft2,[1])
             piece.addPath(pieces[currentPiece], knightDownRight1,[1])
             piece.addPath(pieces[currentPiece], knightDownRight2,[1])
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
           }
     })
     $("#pawnMovement").click(function(){
@@ -402,7 +388,7 @@ $(document).ready(function(){
                 piece.addAttPath(pieces[currentPiece], downRight,[1])
             }
             console.log(pieces[currentPiece])
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
         }
     })
     $("#customMovement").click(function(){
@@ -445,7 +431,7 @@ $(document).ready(function(){
             }
             if(!undefined){
                 piece.addPath(pieces[currentPiece],indexPath,indexSpace)
-                htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+                htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
             }
             else{
                 alert("The input was invalid. Please try again with a valid input.")
@@ -458,7 +444,7 @@ $(document).ready(function(){
                 square.trim()
                 square.toLowerCase()
                 pieces[currentPiece].movmods.push("teleport"+indexAndCoordinates.coordinatesToIndex[square])
-                htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+                htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
             }
         })
     var config = {
@@ -495,7 +481,7 @@ $(document).ready(function(){
             currentPiecePosition = 'd4'
             currentPiece = draggedPiece
             board[indexAndCoordinates.coordinatesToIndex['d4']] = pieces[currentPiece]
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
             loadCheckboxes()
             return false
         }
@@ -511,7 +497,7 @@ $(document).ready(function(){
             currentPiecePosition = Object.keys(newPos)[0]
             board[indexAndCoordinates.coordinatesToIndex[currentPiecePosition]] = pieces[currentPiece]
             console.log(currentPiecePosition)
-            htmlBoardControl.updateHighlightedMoves(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
+            htmlBoardControl.updateHighlightedMovesOnGameCreator(board, currentPiecePosition, htmlSquares, locateHtmlSquares)
         }
     }
 
@@ -535,8 +521,9 @@ function createLocateHtmlSquares(htmlSquares){
     return locateSquares
 }
 
-function highlightValidMoves(parsedBoard, parsedIndex, locateHtmlSquares){
-    var moveset = currentPieceMoveCoordinates(parsedBoard, parsedIndex)
+function highlightValidMoves(locateHtmlSquares, moveList){
+    var moveset = moveList
+    
     for(var i = 0; i < moveset.length; i++){
         if(!($(moveset[i]).hasClass('moveset'))){
             $(locateHtmlSquares[moveset[i]]).addClass("moveset")
@@ -553,10 +540,27 @@ function unHighlightValidMoves(htmlSquares){
         }
     }
 }
-function updateHighlightedMoves(parsedHtmlBoard, parsedIndex, htmlSquares, locateHtmlSquares){
+
+function updateHighlightedMoves(htmlSquares, locateHtmlSquares, moveList){
     unHighlightValidMoves(htmlSquares)
-    highlightValidMoves(parsedHtmlBoard, parsedIndex, locateHtmlSquares)
+    highlightValidMoves(locateHtmlSquares, moveList)
 }
+
+function updateHighlightedMovesOnGameCreator(parsedHtmlBoard, parsedIndex, htmlSquares, locateHtmlSquares){
+    unHighlightValidMoves(htmlSquares)
+    highlightValidMovesOnGameCreator(parsedHtmlBoard, parsedIndex, locateHtmlSquares)
+}
+
+function highlightValidMovesOnGameCreator(parsedBoard, parsedIndex, locateHtmlSquares){
+    var moveset = currentPieceMoveCoordinates(parsedBoard, parsedIndex)
+    for(var i = 0; i < moveset.length; i++){
+        if(!($(moveset[i]).hasClass('moveset'))){
+            $(locateHtmlSquares[moveset[i]]).addClass("moveset")
+            $(locateHtmlSquares[moveset[i]]).css('background', highlightMove)
+        }
+    }
+}
+
 
 function currentPieceMoveCoordinates(parsedHtmlBoard, parsedIndex){
     var coordinates = []
@@ -576,7 +580,8 @@ exports.createLocateHtmlSquares = createLocateHtmlSquares
 exports.updateHighlightedMoves = updateHighlightedMoves
 exports.highlightValidMoves = highlightValidMoves
 exports.unHighlightValidMoves = unHighlightValidMoves
-
+exports.updateHighlightedMovesOnGameCreator = updateHighlightedMovesOnGameCreator
+exports.highlightValidMovesOnGameCreator = highlightValidMovesOnGameCreator
 },{"./IndexAndCoordinates":7,"./Move":8}],7:[function(require,module,exports){
 var indexToCoordinates = {}
 var coordinatesToIndex = {}
@@ -607,6 +612,7 @@ var boardState = require('./BoardState')
 var pieceAttack = require('./PieceAttack')
 var piece = require('./Piece')
 var indexAndCoordinates = require('./IndexAndCoordinates')
+
 var mods = {
     ethereal: function(board, square, moveList){
         loop1:
@@ -713,14 +719,40 @@ var mods = {
     },
     protectKingly: function(board, square, moveList){
         var color = board[square].color
-        for(var i = 0; i < moveList.length; i++){
-            var copyBoard = board.slice()
-            makeMove(copyBoard, color, square, moveList[i], true)
+        for(var i = moveList.length-1; i >= 0; i--){
+            var copyBoard = JSON.parse(JSON.stringify(board))
+            var movement = makeMove(copyBoard, square, moveList[i], true)
             if(check(copyBoard, color)){
                 moveList.splice(i,1)
             }
         }
+    }    
+}
+
+function check(board, color){
+    var enemyColor = 'w'
+    if(color == 'w'){
+        enemyColor = 'b'
     }
+    var enemyMoveList = masterMoveList(board, enemyColor, ['protectKingly'])
+    for(var i = 0; i < enemyMoveList.length;i++){
+        if(boardState.pieceHasAttributeMod(board, enemyMoveList[i], 'kingly') && board[enemyMoveList[i]].color==color){
+            return true
+        }
+    }
+    return false
+}
+
+function checkMate(board, color){
+    var enemyColor = 'w'
+    if(color = 'w'){
+        enemyColor = 'b'
+    }
+    var possibleMoves = masterMoveList(board, color)
+    if(possibleMoves.length==0 && check(board, color)){
+        return true
+    }
+    return false
 }
 
 function addTeleportMods(){
@@ -760,21 +792,23 @@ function validBeaconTeleport(board, square, beaconIndex, offset){
     return boardState.validSquare(parsedSquare) && (pieceAttack.attackTypes[board[square].atttype](board, square, parsedSquare) || boardState.emptySquare(board, parsedSquare))
 }
 
-function parseMoveMods(board, square, moveList){
+function parseMoveMods(board, square, moveList, ignoreList = []){
     for(let i = 0; i < board[square].movmods.length;i++){
         var mod = board[square].movmods[i]
-        mods[mod](board, square, moveList)
+        if(ignoreList.indexOf(mod)==-1){
+            mods[mod](board, square, moveList)
+        }
     }
 }
 
-var masterMoveList = function(board, color){
+var masterMoveList = function(board, color, ignoreList){
     var masterMoveList = []
     for(var i = 0; i < 120; i++){
         if(!boardState.validSquare(i)){
             i+=8
         }
         if(board[i].color==color){
-            var moveList = pieceMoveList(board, i)
+            var moveList = pieceMoveList(board, i, ignoreList)
             for(var j = 0; j < moveList.length;j++){
                 if(masterMoveList.indexOf(moveList[j])==-1){
                     masterMoveList.push(moveList[j])
@@ -785,14 +819,14 @@ var masterMoveList = function(board, color){
     return masterMoveList
 }
 
-var pieceMoveList = function(board, square){  
+var pieceMoveList = function(board, square, ignoreList){  
     if(typeof(square)=='string'){
         square = indexAndCoordinates.coordinatesToIndex[square]
     }
     else if(typeof(square)!='number'){
         return false
     }
-    moveList = []
+    var moveList = []
     loop1:
     for(var i = 0; i < board[square].mov.paths.length;i++){
         var parsedSquare = square + board[square].mov.paths[i][0]
@@ -890,7 +924,7 @@ var pieceMoveList = function(board, square){
             }
         }
     }*/
-    parseMoveMods(board,square,moveList)
+    parseMoveMods(board,square,moveList, ignoreList)
     return moveList
 }
 
@@ -902,21 +936,11 @@ function moveListCoordinates(moveList){
     return coordinates
 }
 
-function check(board, color){
-    var enemyColor = 'w'
-    if(color = 'w'){
-        enemyColor = 'b'
+var makeMove = function(parsedBoard, initial, target, dummyMove = false){
+    if(initial.length == 5){
+        target = initial.substring(3)
+        initial = initial.substring(0,2)
     }
-    var enemyMoveList = masterMoveList(board, enemyColor)
-    for(var i = 0; i < enemyMoveList.length;i++){
-        if(boardState.pieceHasAttributeMod(board, enemyMoveList[i], 'kingly') && board[enemyMoveList[i]].color==color){
-            return true
-        }
-    }
-    return false
-}
-
-var makeMove = function(parsedBoard, turn, initial, target, dummyMove = false){
     if(typeof(initial)=='string'){
         initial = indexAndCoordinates.coordinatesToIndex[initial]
     }
@@ -933,12 +957,6 @@ var makeMove = function(parsedBoard, turn, initial, target, dummyMove = false){
     else if(pieceMoveList(parsedBoard,initial).indexOf(target)!=-1){
         parsedBoard[target] = parsedBoard[initial]
         parsedBoard[initial] = piece.createPiece() 
-        if(turn == 'w'){
-            turn = 'b'
-        }
-        else{
-            turn = 'w'
-        }
         return indexAndCoordinates.indexToCoordinates[initial].toLowerCase() + "-" + indexAndCoordinates.indexToCoordinates[target].toLowerCase()
     } 
     return false 
@@ -949,7 +967,7 @@ exports.makeMove = makeMove
 exports.pieceMoveList = pieceMoveList
 exports.masterMoveList = masterMoveList
 exports.moveListCoordinates = moveListCoordinates
-
+exports.checkMate = checkMate
 },{"./BoardState":3,"./IndexAndCoordinates":7,"./Piece":9,"./PieceAttack":10}],9:[function(require,module,exports){
 function createPiece(id= " ", color = "", hp = 1, dmg = 1, mov = {
     paths: [],
