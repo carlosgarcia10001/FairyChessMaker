@@ -570,6 +570,16 @@ $(document).ready(function(){
                 }
                 if(data.match.playerColor){
                     playerColor = data.match.playerColor
+                    var orientation
+                    if(playerColor == 'w'){
+                        orientation = 'white'
+                    }
+                    else{
+                        orientation = 'black'
+                    }
+                    htmlBoard.orientation(orientation)
+                    htmlSquares = htmlBoardControl.createHtmlSquares()
+                    locateHtmlSquares = htmlBoardControl.createLocateHtmlSquares(htmlSquares)
                 }
                 if(data.match.turn){
                     console.log(data)
