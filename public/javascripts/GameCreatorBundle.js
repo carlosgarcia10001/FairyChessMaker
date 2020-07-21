@@ -551,6 +551,14 @@ function updateHighlightedMovesOnGameCreator(parsedHtmlBoard, parsedIndex, htmlS
     highlightValidMovesOnGameCreator(parsedHtmlBoard, parsedIndex, locateHtmlSquares)
 }
 
+function highlightSquare(locateHtmlSquares, square){
+    if(typeof(square)=='number'){
+        square = indexAndCoordinates.indexToCoordinates[square]
+    }
+    $(locateHtmlSquares[square]).addClass('moveset')
+    $(locateHtmlSquares[square]).css('background', highlightMove)
+}
+
 function highlightValidMovesOnGameCreator(parsedBoard, parsedIndex, locateHtmlSquares){
     var moveset = currentPieceMoveCoordinates(parsedBoard, parsedIndex)
     for(var i = 0; i < moveset.length; i++){
@@ -582,6 +590,7 @@ exports.highlightValidMoves = highlightValidMoves
 exports.unHighlightValidMoves = unHighlightValidMoves
 exports.updateHighlightedMovesOnGameCreator = updateHighlightedMovesOnGameCreator
 exports.highlightValidMovesOnGameCreator = highlightValidMovesOnGameCreator
+exports.highlightSquare = highlightSquare
 },{"./IndexAndCoordinates":7,"./Move":8}],7:[function(require,module,exports){
 var indexToCoordinates = {}
 var coordinatesToIndex = {}
