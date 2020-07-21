@@ -1,6 +1,10 @@
-#myBoard{
+.board{
+    float: left;
+    padding: 5px;
     margin: auto;
-    padding: 10px;
     width: 50%
+}
 
+body{
+    background-color: rgb(226, 226, 226)
 }

@@ -697,6 +697,7 @@ $(document).ready(function(){
 var move = require('./Move')
 var indexAndCoordinates = require('./IndexAndCoordinates')
 var highlightMove = '#a9a9a9'
+
 function createHtmlSquares(){
     var squares = $('[data-square]')
     return squares
