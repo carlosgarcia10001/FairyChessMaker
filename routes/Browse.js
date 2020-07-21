@@ -30,6 +30,7 @@ router.post('/', function(req, res){
             turn: 'w',
             moveHistory: [],
             FENHistory: [game.FEN],
+            winner: false
         })
         res.send(match.insertedId)
     }

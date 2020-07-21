@@ -65,7 +65,7 @@ app.use(function(err, req, res, next) {
     res.render('error');
   });
 var gameMap = new Map()
-var play = sockets.createPlaySocket(sessionParser)
+var play
 var server = app.listen(port, () => console.log("app running"))
 server.on('upgrade', function upgrade(request, socket, head) {
     if(gameMap.get(request.url)){

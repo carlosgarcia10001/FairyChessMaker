@@ -25,14 +25,24 @@ $(document).ready(function(){
                     playerColor = data.match.playerColor
                 }
                 if(data.match.turn){
+                    console.log(data)
                     turn = data.match.turn
                     changeGameStatus(turn)
                 }
+                if(data.match.winner && data.match.winner!=false){
+                    var winner = 'draw'
+                    if(data.match.winner=='w'){
+                        winner = 'whiteWin'
+                    }
+                    else if (data.match.winner=='b'){
+                        winner = 'blackWin'
+                    }
+                    var player 
+                    playerColor = player
+                    changeGameStatus(winner)
+                }
             },
             FEN: function(data){
-                console.log(FEN)
-                console.log(data.FEN)
-                console.log(FEN!=data.FEN)
                 if(FEN!=data.FEN){
                     htmlBoard.position(data.FEN)
                 }

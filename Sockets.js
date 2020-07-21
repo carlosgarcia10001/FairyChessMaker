@@ -15,7 +15,7 @@ function createPlaySocket(sessionParser){
     var blackId
     var matchId
     var whiteId
-    var winner = false
+    var winner
     var playGame = JSON.parse(JSON.stringify(gameControl.game))
     async function getData(message, ws, req){
         var client = await MongoClient.connect(url)
@@ -44,7 +44,7 @@ function createPlaySocket(sessionParser){
                 blackId = match.black
                 delete match.black
             }
-            if(match.winner){
+            if(typeof(match.winner) == 'boolean' && !match.winner){
                 winner = match.winner
             }
             if(req.session.userId == blackId && req.session.userId){
@@ -73,7 +73,7 @@ function createPlaySocket(sessionParser){
 
     async function updateMatch(move, FEN, color, winner){
         var client = await MongoClient.connect(url)
-        await client.db('FairyChessMaker').collection('Matches').updateOne({_id: ObjectId(matchId)}, { $set: {turn: color, winner: winner}, $push: {moveHistory: move, FENHistory: FEN}})
+        await client.db('FairyChessMaker').collection('Matches').updateOne({_id: ObjectId(matchId)}, {$set: {turn: color, winner: winner}, $push: {moveHistory: move, FENHistory: FEN}})
     }
 
     var messageResponse = {
@@ -104,10 +104,10 @@ function createPlaySocket(sessionParser){
                         }
                         FEN = gameControl.createFEN(playGame.board)
                         var winnerParse = win.winCondition[playGame.winCondition](playGame.board, playGame.turn)
-                        updateMatch(movement, FEN, playGame.turn, winner)
                         if(winnerParse!=false){
                             winner = winnerParse
                         }
+                        updateMatch(movement, FEN, playGame.turn, winner)
                     }
                 }
             }
