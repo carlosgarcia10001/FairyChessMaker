@@ -7,13 +7,6 @@ var board = new Array(128)
 var turn = 'w'
 var boardHistory = []
 
-function addBoardStateToHistory(parsedBoard, parsedTurn){
-    parsedBoardHistory.push({
-        board: parsedBoard.slice(),
-        turn: parsedTurn
-    })
-}
-
 function initializeBoard(parsedBoard){
     for(var i = 0; i < parsedBoard.length; i++){
         var createdPiece = piece.createPiece()
@@ -91,13 +84,17 @@ function parseFEN(parsedBoard, parsedFEN, parsedPieces){
     }
 }
 
-function undoMove(parsedBoard, parsedBoardHistory){
-    parsedBoardHistory.splice(parsedBoardHistory.length-1,1)
-    parsedBoard = parsedBoardHistory[parsedBoardHistory.length-1].board.slice()
-    turn = parsedBoardHistory[parsedBoardHistory.length-1].turn
+var game = {
+    board: new Array(128),
+    turn: 'w',
+    pieces: piece.createPieces(),
+    FEN: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+    winCondition: "checkMate"
 }
 
-initializeBoard(board)
+parseFEN(game.board,game.FEN,game.pieces)
+
+exports.game = game
 exports.board = board
 exports.turn = turn
 exports.initializeBoard=initializeBoard

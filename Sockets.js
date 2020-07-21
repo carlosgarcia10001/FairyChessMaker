@@ -3,6 +3,7 @@ var MongoClient = require('mongodb').MongoClient;
 var ObjectId = require('mongodb').ObjectId; 
 var parseCookie = require('cookie-parser')
 var url = "mongodb://localhost:27017/"
+var win = require('./public/javascripts/winConditions')
 var cookie = require('cookie')
 var gameControl = require('./public/javascripts/Game')
 var move = require('./public/javascripts/Move')
@@ -14,9 +15,8 @@ function createPlaySocket(sessionParser){
     var blackId
     var matchId
     var whiteId
-    var board = new Array(128)
-    var turn
-    gameControl.initializeBoard(board)
+    var winner = false
+    var playGame = JSON.parse(JSON.stringify(gameControl.game))
     async function getData(message, ws, req){
         var client = await MongoClient.connect(url)
         var match = await client.db('FairyChessMaker').collection('Matches').findOne(ObjectId(message.matchId))
@@ -44,6 +44,9 @@ function createPlaySocket(sessionParser){
                 blackId = match.black
                 delete match.black
             }
+            if(match.winner){
+                winner = match.winner
+            }
             if(req.session.userId == blackId && req.session.userId){
                 match.playerColor = 'b'
             }
@@ -51,27 +54,26 @@ function createPlaySocket(sessionParser){
                 match.playerColor = 'w'
             }
             if(match.turn){
-                turn = match.turn
+                playGame.turn = match.turn
             }
+            if(game.winCondition){
+                playGame.winCondition = game.winCondition
+            }
+
             game.pieces = JSON.parse(game.pieces)
             cleanPieceFileRead.cleanPieces(game.pieces)
-            gameControl.parseFEN(board, match.FENHistory[match.FENHistory.length-1], game.pieces)
-            gameControl.activateAttributeMods(board)
-
+            playGame.pieces = game.pieces
+            gameControl.parseFEN(playGame.board, match.FENHistory[match.FENHistory.length-1], game.pieces)
+            gameControl.activateAttributeMods(playGame.board)
             return {
                 match: match
             }
         }
     }
-    
-    async function updateFEN(FEN){
-        var client = await MongoClient.connect(url)
-        await client.db('FairyChessMaker').collection('Matches').updateOne({_id: ObjectId(matchId)}, { $push: {FENHistory: FEN}})
-    }
 
-    async function updateMatch(move, color){
+    async function updateMatch(move, FEN, color, winner){
         var client = await MongoClient.connect(url)
-        await client.db('FairyChessMaker').collection('Matches').updateOne({_id: ObjectId(matchId)}, { $set: {turn: color}, $push: {moveHistory: move}})
+        await client.db('FairyChessMaker').collection('Matches').updateOne({_id: ObjectId(matchId)}, { $set: {turn: color, winner: winner}, $push: {moveHistory: move, FENHistory: FEN}})
     }
 
     var messageResponse = {
@@ -83,33 +85,37 @@ function createPlaySocket(sessionParser){
         },
         highlightMoveList: function(message, ws, req){
             var highlightMoveList = {
-                highlightMoveList: move.moveListCoordinates(move.pieceMoveList(board, message.highlightMoveList))
+                highlightMoveList: move.moveListCoordinates(move.pieceMoveList(playGame.board, message.highlightMoveList))
             }
             ws.send(JSON.stringify(highlightMoveList))
         },
         move: function(message, ws, req){
-            var FEN = gameControl.createFEN(board)
-            var fromColor = board[IndexAndCoordinates.coordinatesToIndex[message.move.from]].color
-            if((whiteId == req.session.userId && fromColor == 'w') || (blackId == req.session.userId && fromColor == 'b')){
-                if(fromColor == turn){   
-                    var movement = move.makeMove(board, message.move.from, message.move.to)
+            var FEN = gameControl.createFEN(playGame.board)
+            var fromColor = playGame.board[IndexAndCoordinates.coordinatesToIndex[message.move.from]].color
+            if(winner == false &&((whiteId == req.session.userId && fromColor == 'w') || (blackId == req.session.userId && fromColor == 'b'))){
+                if(fromColor == playGame.turn){   
+                    var movement = move.makeMove(playGame.board, message.move.from, message.move.to)
                     if(movement!=false){
-                        if(turn == 'w'){
-                            turn = 'b'
+                        if(playGame.turn == 'w'){
+                            playGame.turn = 'b'
                         }
                         else{
-                            turn = 'w'
+                            playGame.turn = 'w'
                         }
-                        FEN = gameControl.createFEN(board)
-                        updateMatch(movement, turn)
+                        FEN = gameControl.createFEN(playGame.board)
+                        var winnerParse = win.winCondition[playGame.winCondition](playGame.board, playGame.turn)
+                        updateMatch(movement, FEN, playGame.turn, winner)
+                        if(winnerParse!=false){
+                            winner = winnerParse
+                        }
                     }
                 }
             }
             var moveResponse = {
                 FEN: FEN,
-                turn: turn
+                turn: playGame.turn,
+                winner: winner
             }
-            updateFEN(moveResponse.FEN)
             wss.clients.forEach((client) =>{
                 client.send(JSON.stringify(moveResponse))  
             })

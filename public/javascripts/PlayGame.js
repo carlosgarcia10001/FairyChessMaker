@@ -30,12 +30,16 @@ $(document).ready(function(){
                 }
             },
             FEN: function(data){
+                console.log(FEN)
+                console.log(data.FEN)
+                console.log(FEN!=data.FEN)
                 if(FEN!=data.FEN){
                     htmlBoard.position(data.FEN)
                 }
                 FEN = data.FEN 
             },
             highlightMoveList: function(data){
+                console.log(data.highlightMoveList)
                 var moveList = data.highlightMoveList
                 highlightedMoves = moveList
                 htmlBoardControl.updateHighlightedMoves(htmlSquares,locateHtmlSquares, moveList)
@@ -45,7 +49,18 @@ $(document).ready(function(){
                 changeGameStatus(turn)
             },
             winner: function(data){
-                changeGameStatus(data.winner)
+                if(data.winner!=false){
+                    var winner = 'draw'
+                    if(data.winner=='w'){
+                        winner = 'whiteWin'
+                    }
+                    else if (data.winner=='b'){
+                        winner = 'blackWin'
+                    }
+                    var player 
+                    playerColor = player
+                    changeGameStatus(winner)
+                }
             }
         }
         socket.addEventListener('message', function (message) {
@@ -54,6 +69,7 @@ $(document).ready(function(){
                 data = JSON.parse(message.data)
                 var keys = Object.keys(data)
                 console.log(keys)
+                console.log(data)
                 for(var i = 0; i < keys.length; i++){
                     messageResponse[keys[i]](data)
                 }

@@ -3,15 +3,16 @@
     <head>
         <%- include('partials/Header', {user: user}) %>
         <link rel="stylesheet" href="../stylesheets/chessboard-1.0.0.min.css">
+        <link rel="stylesheet" href="../stylesheets/gameCreator.css"
         </head>
     <body>
-        <div id="myBoard" style="width: 400px"></div>
+        <div id="myBoard" style="width: 450px"></div>
         <div id="movement">
             <button type="button" id = 'kingMovement'>Add King Movement</button>
             <button type="button" id = 'queenMovement'>Add Queen Movement</button>
+            <button type="button" id = 'rookMovement'>Add Rook Movement</button>
             <button type="button" id = 'bishopMovement'>Add Bishop Movement</button>
             <button type="button" id = 'knightMovement'>Add Knight Movement</button>
-            <button type="button" id = 'rookMovement'>Add Rook Movement</button>
             <button type="button" id = 'pawnMovement'>Add Pawn Movement</button>
             <button type="button" id = 'customMovement'>Add Custom Movement</button>
             <button type="button" id = 'teleportMovement'>Add Teleportation</button>

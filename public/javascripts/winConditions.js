@@ -1,23 +1,30 @@
 var move = require('./Move')
 var boardState = require('./BoardState')
-var winCondition = {
-    checkMate: function(board, color){
+var winCondition = { 
+    checkMate: function(board, turn){
         var enemyColor = 'w'
-        if(color == 'w'){
+        if(turn == 'w'){
             enemyColor = 'b'
         }
-        return move.checkMate(board, enemyColor)
+        var checkMate = move.checkMate(board,turn)
+        if(checkMate){
+            return enemyColor
+        }
+        else if(!checkMate && move.masterMoveList(board, turn).length == 0){
+            return 'draw'
+        }
+        return false
     },
-    elimination: function(board, color){
+    elimination: function(board, turn){
         var enemyColor = 'b'
-        if(color==enemyColor){
+        if(turn==enemyColor){
             enemyColor = 'w'
         }
-        for(var i = 0; i < board.length; i++){
-            if(boardState.validSquare(i) && board[i].color==enemyColor){
-                return false
-            }
+        if(boardState.pieceIndex(board, turn).length==0){
+            return enemyColor
         }
-        return true
+        return false
     },
 }
+
+exports.winCondition = winCondition

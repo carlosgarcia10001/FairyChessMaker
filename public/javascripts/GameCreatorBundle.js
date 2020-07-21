@@ -113,13 +113,6 @@ var board = new Array(128)
 var turn = 'w'
 var boardHistory = []
 
-function addBoardStateToHistory(parsedBoard, parsedTurn){
-    parsedBoardHistory.push({
-        board: parsedBoard.slice(),
-        turn: parsedTurn
-    })
-}
-
 function initializeBoard(parsedBoard){
     for(var i = 0; i < parsedBoard.length; i++){
         var createdPiece = piece.createPiece()
@@ -197,13 +190,17 @@ function parseFEN(parsedBoard, parsedFEN, parsedPieces){
     }
 }
 
-function undoMove(parsedBoard, parsedBoardHistory){
-    parsedBoardHistory.splice(parsedBoardHistory.length-1,1)
-    parsedBoard = parsedBoardHistory[parsedBoardHistory.length-1].board.slice()
-    turn = parsedBoardHistory[parsedBoardHistory.length-1].turn
+var game = {
+    board: new Array(128),
+    turn: 'w',
+    pieces: piece.createPieces(),
+    FEN: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+    winCondition: "checkMate"
 }
 
-initializeBoard(board)
+parseFEN(game.board,game.FEN,game.pieces)
+
+exports.game = game
 exports.board = board
 exports.turn = turn
 exports.initializeBoard=initializeBoard
@@ -267,7 +264,11 @@ var knightDownLeft1 = [14,14]
 var knightDownLeft2 = [31,31]
 var knightDownRight1 = [18,18]
 var knightDownRight2 = [33,33]
-
+var verticalSpace = 16
+var diagonalSpaceUpLeft = 17
+var diagonalSpaceUpRight = 15
+var diagonalSpaceDownLeft = 15
+var diagonalSpaceDownRight = 17
 game.initializeBoard(board)
 $(document).ready(function(){
     var htmlSquares = []
@@ -275,7 +276,6 @@ $(document).ready(function(){
     var pieces = piece.createPieces()
     var currentPiece = ""
     var currentPiecePosition = -1
-    console.log(pieces)
     $(document).on('load',function(){
         htmlSquares = htmlBoardControl.createHtmlSquares()
         locateHtmlSquares = htmlBoardControl.createLocateHtmlSquares(htmlSquares)
@@ -748,18 +748,11 @@ function checkMate(board, color){
     if(color = 'w'){
         enemyColor = 'b'
     }
-    var enemyPositions = boardState.pieceIndex(board, enemyColor)
-    for(var i = 0; i < enemyPositions.length;i++){
-        enemyMoveList = move.pieceMoveList(board, enemyPositions[i])
-        for(var j = 0; j < enemyMoveList.length;j++){
-            var copyBoard = board.slice()
-            makeMove(copyBoard, color, enemyPositions[i], enemyMoveList[j], true)
-            if(!check(copyBoard, color)){
-                return false
-            }
-        }
+    var possibleMoves = masterMoveList(board, color)
+    if(possibleMoves.length==0 && check(board, color)){
+        return true
     }
-    return true
+    return false
 }
 
 function addTeleportMods(){
@@ -974,7 +967,7 @@ exports.makeMove = makeMove
 exports.pieceMoveList = pieceMoveList
 exports.masterMoveList = masterMoveList
 exports.moveListCoordinates = moveListCoordinates
-
+exports.checkMate = checkMate
 },{"./BoardState":3,"./IndexAndCoordinates":7,"./Piece":9,"./PieceAttack":10}],9:[function(require,module,exports){
 function createPiece(id= " ", color = "", hp = 1, dmg = 1, mov = {
     paths: [],

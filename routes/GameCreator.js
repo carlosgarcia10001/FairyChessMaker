@@ -20,8 +20,7 @@ router.post('/',function(req, res, next){
                 "name": req.body.name,
                 "pieces": JSON.stringify(req.body.game),
                 "FEN": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
-                "winConditionBlack": "Checkmate",
-                "winConditionWhite": "Checkmate" 
+                "winCondition": "checkMate"
             })
             console.log('game added')
         }

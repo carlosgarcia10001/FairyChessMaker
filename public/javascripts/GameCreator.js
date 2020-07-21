@@ -52,7 +52,11 @@ var knightDownLeft1 = [14,14]
 var knightDownLeft2 = [31,31]
 var knightDownRight1 = [18,18]
 var knightDownRight2 = [33,33]
-
+var verticalSpace = 16
+var diagonalSpaceUpLeft = 17
+var diagonalSpaceUpRight = 15
+var diagonalSpaceDownLeft = 15
+var diagonalSpaceDownRight = 17
 game.initializeBoard(board)
 $(document).ready(function(){
     var htmlSquares = []
@@ -60,7 +64,6 @@ $(document).ready(function(){
     var pieces = piece.createPieces()
     var currentPiece = ""
     var currentPiecePosition = -1
-    console.log(pieces)
     $(document).on('load',function(){
         htmlSquares = htmlBoardControl.createHtmlSquares()
         locateHtmlSquares = htmlBoardControl.createLocateHtmlSquares(htmlSquares)

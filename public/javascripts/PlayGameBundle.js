@@ -232,18 +232,11 @@ function checkMate(board, color){
     if(color = 'w'){
         enemyColor = 'b'
     }
-    var enemyPositions = boardState.pieceIndex(board, enemyColor)
-    for(var i = 0; i < enemyPositions.length;i++){
-        enemyMoveList = move.pieceMoveList(board, enemyPositions[i])
-        for(var j = 0; j < enemyMoveList.length;j++){
-            var copyBoard = board.slice()
-            makeMove(copyBoard, color, enemyPositions[i], enemyMoveList[j], true)
-            if(!check(copyBoard, color)){
-                return false
-            }
-        }
+    var possibleMoves = masterMoveList(board, color)
+    if(possibleMoves.length==0 && check(board, color)){
+        return true
     }
-    return true
+    return false
 }
 
 function addTeleportMods(){
@@ -458,7 +451,7 @@ exports.makeMove = makeMove
 exports.pieceMoveList = pieceMoveList
 exports.masterMoveList = masterMoveList
 exports.moveListCoordinates = moveListCoordinates
-
+exports.checkMate = checkMate
 },{"./BoardState":1,"./IndexAndCoordinates":2,"./Piece":4,"./PieceAttack":5}],4:[function(require,module,exports){
 function createPiece(id= " ", color = "", hp = 1, dmg = 1, mov = {
     paths: [],
@@ -584,12 +577,16 @@ $(document).ready(function(){
                 }
             },
             FEN: function(data){
+                console.log(FEN)
+                console.log(data.FEN)
+                console.log(FEN!=data.FEN)
                 if(FEN!=data.FEN){
                     htmlBoard.position(data.FEN)
                 }
                 FEN = data.FEN 
             },
             highlightMoveList: function(data){
+                console.log(data.highlightMoveList)
                 var moveList = data.highlightMoveList
                 highlightedMoves = moveList
                 htmlBoardControl.updateHighlightedMoves(htmlSquares,locateHtmlSquares, moveList)
@@ -599,7 +596,18 @@ $(document).ready(function(){
                 changeGameStatus(turn)
             },
             winner: function(data){
-                changeGameStatus(data.winner)
+                if(data.winner!=false){
+                    var winner = 'draw'
+                    if(data.winner=='w'){
+                        winner = 'whiteWin'
+                    }
+                    else if (data.winner=='b'){
+                        winner = 'blackWin'
+                    }
+                    var player 
+                    playerColor = player
+                    changeGameStatus(winner)
+                }
             }
         }
         socket.addEventListener('message', function (message) {
@@ -608,6 +616,7 @@ $(document).ready(function(){
                 data = JSON.parse(message.data)
                 var keys = Object.keys(data)
                 console.log(keys)
+                console.log(data)
                 for(var i = 0; i < keys.length; i++){
                     messageResponse[keys[i]](data)
                 }

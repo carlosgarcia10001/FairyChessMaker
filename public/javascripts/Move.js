@@ -138,18 +138,11 @@ function checkMate(board, color){
     if(color = 'w'){
         enemyColor = 'b'
     }
-    var enemyPositions = boardState.pieceIndex(board, enemyColor)
-    for(var i = 0; i < enemyPositions.length;i++){
-        enemyMoveList = move.pieceMoveList(board, enemyPositions[i])
-        for(var j = 0; j < enemyMoveList.length;j++){
-            var copyBoard = board.slice()
-            makeMove(copyBoard, color, enemyPositions[i], enemyMoveList[j], true)
-            if(!check(copyBoard, color)){
-                return false
-            }
-        }
+    var possibleMoves = masterMoveList(board, color)
+    if(possibleMoves.length==0 && check(board, color)){
+        return true
     }
-    return true
+    return false
 }
 
 function addTeleportMods(){
@@ -364,3 +357,4 @@ exports.makeMove = makeMove
 exports.pieceMoveList = pieceMoveList
 exports.masterMoveList = masterMoveList
 exports.moveListCoordinates = moveListCoordinates
+exports.checkMate = checkMate
