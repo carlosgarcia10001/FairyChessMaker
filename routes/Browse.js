@@ -4,8 +4,8 @@ var MongoClient = require('mongodb').MongoClient;
 var ObjectId = require('mongodb').ObjectId; 
 var url = "mongodb://localhost:27017/"
 
+var games = []
 router.get('/', function(req, res){
-    var games = []
     async function fetchDataAndRender(){
         var client = await MongoClient.connect(url)
         var data = await client.db('FairyChessMaker').collection("Games").find().forEach(function (result) {

@@ -3,9 +3,15 @@ var router = express.Router()
 var fs = require('fs')
 var MongoClient = require('mongodb').MongoClient;
 var url = "mongodb://localhost:27017/"
+var publicOptionsList = require('../public/javascripts/publicOptionsList')
+
 router.get('/', function (req, res){
     res.render("GameCreator", {
-        user: req.session.user
+        user: req.session.user,
+        moveMods: publicOptionsList.publicMoveMods,
+        attributeMods: publicOptionsList.publicAttributeMods,
+        winConditions: publicOptionsList.publicWinConditions,
+        attackTypes: publicOptionsList.publicAttackTypes
     })
 })
 

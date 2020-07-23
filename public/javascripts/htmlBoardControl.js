@@ -2,7 +2,7 @@ var move = require('./Move')
 var indexAndCoordinates = require('./IndexAndCoordinates')
 var highlightMove = '#a9a9a9'
 
-function createHtmlSquares(){
+function createHtmlSquares(board){
     var squares = $('[data-square]')
     return squares
 }

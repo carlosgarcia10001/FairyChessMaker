@@ -7,11 +7,114 @@
         </head>
     <body>
         <div id = "boards">
-            <div id="FENBoard" class = "board" style="width: 600px"></div>
-            <div id="currentPieceBoard" class = "board" style="width: 325px"></div>
+            <div id="FENBoard" class = "board" style="width: 500px"></div>
+            <div id="currentPieceBoard" class = "board" style="width: 225px"></div>
+            <div id = "currentBoardTeleportAndDeny">
+                <h2>Teleport</h2>
+                <input type = "textbox" id = "teleport" name = "Teleport">
+                <br><br>
+                <button id = "submitTeleport">Submit</button>
+                <br>
+                <h2>Deny Movement</h2>
+                <input type = "textbox" id = "moveDeny" name = "moveDeny">
+                <br><br>
+                <button id = "denyMovement">Submit</button>
+            </div>
         </div>
-        <input id = 'name' type = "text" name = "Name">
-        <input type = "submit" value = "Submit"/>
+        <div id = "pieceStats">
+            <h1 id = "pieceName">Unselected</h1>
+            <%- include('partials/GameCreatorSelectOne', {id: "attackTypes", p: "Attack Type", list: attackTypes}) %>
+            <%- include('partials/GameCreatorSelectMany',{id: "moveMods", p: "Movement Modifers", list: moveMods}) %>
+            <%- include('partials/GameCreatorSelectMany',{id: "attributeMods", p: "Attribute Modifers", list: attributeMods}) %>
+            <h2>Move Paths</h2>
+            <div id = "currentPieceMovePaths">
+            <h3>Move Paths</h3>
+            </div>
+            <div id = "currentPieceTeleports">
+            <h3>Teleports</h3>
+            </div>
+            <div id = "currentPieceDeniedSquares">
+            <h3>Denied Squares</h3>
+            </div>
+        </div>
+        <div id = "pathBoard" style="width: 225px">
+        </div>
+
+        <div id = "movement">
+            <h1>Add Movement</h1>
+            <h2>Move Paths</h2>
+            <div id = upMovement">
+                <b class = "moveAmount">Up</b>
+                <input type = "number" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
+                
+                <input type = "submit" class = "moveAmount" value = "Add Movement">
+            </div>
+            <br>
+            <div id = "downMovement">
+                <b class = "moveAmount">Down</b>
+                <input type = "number" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
+                <input type = "submit" class = "moveAmount" value = "Add Movement">
+            </div>
+            <br>
+            <div id = "leftMovement">
+                <b class = "moveAmount">Left</b>
+                <input type = "number" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
+                <input type = "submit" class = "moveAmount" value = "Add Movement">
+            </div>
+            <br>
+            <div id = "rightMovement">
+                <b class = "moveAmount">Right</b>
+                <input type = "number" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
+                <input type = "submit" class = "moveAmount" value = "Add Movement">
+            </div>
+            <br>
+            <div id = "upLeft">
+                <b class = "moveAmount">Up Left</b>
+                <input type = "number" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
+                <input type = "submit" class = "moveAmount" value = "Add Movement">
+            </div>
+            <br>
+            <div id = "upRight">
+                <b class = "moveAmount">Up Right</b>
+                <input type = "number" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
+                <input type = "submit" class = "moveAmount" value = "Add Movement">
+            </div>
+            <br>
+            <div id = "downLeft">
+                <b class = "moveAmount">Down Left</b>
+                <input type = "number" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
+                <input type = "submit" class = "moveAmount" value = "Add Movement">
+            </div>
+            <br>
+            <div id = "downRight">
+                <b class = "moveAmount">Down Right</b>
+                <input type = "number" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
+                <input type = "submit" class = "moveAmount" value = "Add Movement">
+            </div>
+            <br>
+            <h3>Path</h3>
+            <input type = "textbox" id = "PATH" name = "PATH">
+            <button id = "updatePATHBoard">Update Path On Board</button>
+            <br>
+            <br>
+            <button id = "removeLastAddedMovement">Undo</button>
+            <button id = "submitPath">Add Path To Selected Piece</button>
+            <br><br>
+            
+        </div>
+        <div id = "boardMeta">
+            <h3>Name</h3>
+            <input type = "text" name = "Name" id = "Name"/>
+            <h3>FEN</h3>
+            <input type = "text" name = "FEN" id = "FEN"/>
+            <button id = "FENSubmit">Submit New FEN</button>
+            <h3>Description</h3>
+            <input type = "text" name = "Description" id = "Description"/>
+            <%- include('partials/GameCreatorSelectOne', {id: "winConditions", p: "Win Condition", list: winConditions}) %>
+            <br>
+            <br>
+            <input type = "submit" value = "Submit Game"/>
+        </div>
         <script src = "../javascripts/jquery.min.js"></script>
         <script src = "../javascripts/chessboard-1.0.0.min.js"></script>
         <script src = "../javascripts/GameCreatorBundle.js"></script>

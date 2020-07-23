@@ -1,0 +1,6 @@
+<h2 id = <%= id %>> <%= p %> </h2>
+<select name = <%= id + "Options" %> id = <%= id + "Options" %>>
+    <% for(var i = 0; i < list.length; i++){ %>
+        <option value= <%= list[i] %> > <%= list[i] %> </option>
+    <% } %>
+</select>

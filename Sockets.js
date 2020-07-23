@@ -8,7 +8,7 @@ var cookie = require('cookie')
 var gameControl = require('./public/javascripts/Game')
 var move = require('./public/javascripts/Move')
 var cleanPieceFileRead = require('./public/javascripts/CleanPieceFileRead')
-var IndexAndCoordinates = require('./public/javascripts/IndexAndCoordinates')
+var indexAndCoordinates = require('./public/javascripts/IndexAndCoordinates')
 var boardState = require('./public/javascripts/BoardState')
 
 function createPlaySocket(sessionParser){
@@ -91,7 +91,7 @@ function createPlaySocket(sessionParser){
         },
         move: function(message, ws, req){
             var FEN = gameControl.createFEN(playGame.board)
-            var fromColor = playGame.board[IndexAndCoordinates.coordinatesToIndex[message.move.from]].color
+            var fromColor = playGame.board[indexAndCoordinates.coordinatesToIndex[message.move.from]].color
             if(winner == false &&((whiteId == req.session.userId && fromColor == 'w') || (blackId == req.session.userId && fromColor == 'b'))){
                 if(fromColor == playGame.turn){   
                     var movement = move.makeMove(playGame.board, message.move.from, message.move.to)
@@ -103,7 +103,7 @@ function createPlaySocket(sessionParser){
                             playGame.turn = 'w'
                         }
                         FEN = gameControl.createFEN(playGame.board)
-                        var winnerParse = win.winCondition[playGame.winCondition](playGame.board, playGame.turn)
+                        var winnerParse = win.winCondition[playGame.winCondition].action(playGame.board, playGame.turn)
                         if(winnerParse!=false){
                             winner = winnerParse
                         }
@@ -139,4 +139,77 @@ function createPlaySocket(sessionParser){
     return wss
 }
 
+function createGameCreateSocket(sessionParser){
+    var FEN = "8/8/8/8/8/8/8/8"
+    var FENGame = JSON.parse(JSON.stringify(gameControl.game))
+    var currentPiece = ""
+    var currentPieceBoard = JSON.parse(JSON.stringify(gameControl.game.board))
+    var pathGame = JSON.parse(JSON.stringify(gameControl.game))
+    var parsingPath = {
+        path: [],
+        space: []
+    }
+    var messageResponse = {
+        FEN: function(message, ws, req){
+            gameControl.parseFEN(FENGame.board,message.FEN,FENGame.pieces)
+        },
+        currentPiece: function(message, ws, req){
+            currentPiece = message.currentPiece
+            gameControl.initializeBoard(currentPieceBoard)
+            currentPieceBoard[indexAndCoordinates.coordinatesToIndex['d4']] = FENGame.pieces[currentPiece]
+            var moveList = move.pieceMoveList(currentPieceBoard, 'd4')
+            var highlightCurrentPieceMoveList = {
+                highlightCurrentPieceMoveList: move.moveListCoordinates(moveList)
+            }
+            ws.send(JSON.stringify(highlightCurrentPieceMoveList))
+        },
+        currentPiecePosition: function(message, ws, req){
+            var from = indexAndCoordinates.coordinatesToIndex[message.currentPiecePosition.from]
+            var to = indexAndCoordinates.coordinatesToIndex[message.currentPiecePosition.to]
+            gameControl.initializeBoard(currentPieceBoard)
+            currentPieceBoard[to] = FENGame.pieces[currentPiece]
+            var highlightCurrentPieceMoveList = {
+                highlightCurrentPieceMoveList: move.moveListCoordinates(move.pieceMoveList(currentPieceBoard, to))
+            }
+            ws.send(JSON.stringify(highlightCurrentPieceMoveList))
+        },
+        pathPiecePosition: function(message, ws, req){
+            var from = indexAndCoordinates.coordinatesToIndex[message.pathPiecePosition.from]
+            var to = indexAndCoordinates.coordinatesToIndex[message.pathPiecePosition.to]
+            gameControl.initializeBoard(pathGame.board)
+            currentPieceBoard[to] = pathGame.pieces[currentPiece]
+            var highlightPathMoveList = {
+                highlightPathMoveList: move.moveListCoordinates(move.pieceMoveList(pathGame.board, to))
+            }
+            ws.send(JSON.stringify(highlightPathMoveList))
+        },
+        pathAddMovement: function(message, ws, req){
+            var direction = message.direction
+            var amount = direction.amount
+
+        }
+    }
+
+    var pathAdd = {
+        UP: function(amount){
+        
+        }
+    }
+    var wss = new WebSocket.Server({ noServer: true})
+    wss.on('connection', function (ws, req) {
+        sessionParser(req, {}, () => {})
+        ws.on('message', function (message) {
+            var isJSON = false
+            if(message.charAt(0)=='{'){
+                message = JSON.parse(message)
+                isJSON = true
+            }
+            if(isJSON){
+                messageResponse[Object.keys(message)[0]](message, ws, req)
+            }
+        })
+    })
+    return wss
+}
+exports.createGameCreateSocket = createGameCreateSocket
 exports.createPlaySocket = createPlaySocket

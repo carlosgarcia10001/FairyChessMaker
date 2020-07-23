@@ -66,16 +66,25 @@ app.use(function(err, req, res, next) {
   });
 var gameMap = new Map()
 var play
+var createGame 
 var server = app.listen(port, () => console.log("app running"))
 server.on('upgrade', function upgrade(request, socket, head) {
-    if(gameMap.get(request.url)){
-      play = gameMap.get(request.url)
-    }
-    else if(!gameMap.get(request.url)){
-      play = sockets.createPlaySocket(sessionParser)
-      gameMap.set(request.url,play)
-    }
-      play.handleUpgrade(request, socket, head, function(ws){
-      play.emit('connection', ws, request)
-  })
+    if(request.url.substring(0,5)=="/play"){
+      if(gameMap.get(request.url)){
+        play = gameMap.get(request.url)
+      }
+      else if(!gameMap.get(request.url)){
+        play = sockets.createPlaySocket(sessionParser)
+        gameMap.set(request.url,play)
+      }
+        play.handleUpgrade(request, socket, head, function(ws){
+        play.emit('connection', ws, request)
+    })
+  }
+  else if(request.url.substring(0,11)=="/gamecreate"){
+    createGame = sockets.createGameCreateSocket(sessionParser)
+    createGame.handleUpgrade(request, socket, head, function(ws){
+    createGame.emit('connection', ws, request)
+    })
+  }
 })
