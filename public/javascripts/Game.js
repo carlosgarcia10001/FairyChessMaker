@@ -88,7 +88,7 @@ var game = {
     board: new Array(128),
     turn: 'w',
     pieces: piece.createPieces(),
-    FEN: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+    FEN: '8/8/8/8/8/8/8/8',
     winCondition: "checkMate"
 }
 

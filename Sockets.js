@@ -144,6 +144,7 @@ function createGameCreateSocket(sessionParser){
     var FENGame = JSON.parse(JSON.stringify(gameControl.game))
     var currentPiece = ""
     var currentPieceBoard = JSON.parse(JSON.stringify(gameControl.game.board))
+    var pathPiecePosition = 'd4'
     var pathGame = JSON.parse(JSON.stringify(gameControl.game))
     var parsingPath = {
         path: [],
@@ -177,24 +178,66 @@ function createGameCreateSocket(sessionParser){
             var from = indexAndCoordinates.coordinatesToIndex[message.pathPiecePosition.from]
             var to = indexAndCoordinates.coordinatesToIndex[message.pathPiecePosition.to]
             gameControl.initializeBoard(pathGame.board)
-            currentPieceBoard[to] = pathGame.pieces[currentPiece]
+            pathGame.board[to] = pathGame.pieces[currentPiece]
             var highlightPathMoveList = {
                 highlightPathMoveList: move.moveListCoordinates(move.pieceMoveList(pathGame.board, to))
             }
+            pathPiecePosition = to
             ws.send(JSON.stringify(highlightPathMoveList))
         },
         pathAddMovement: function(message, ws, req){
-            var direction = message.direction
-            var amount = direction.amount
-
-        }
+            var direction = message.pathAddMovement.direction
+            var amount = message.pathAddMovement.amount
+            pathAdd[direction.toUpperCase()](amount)
+            pathGame.pieces[currentPiece].mov.paths[0]=(parsingPath.path)
+            pathGame.pieces[currentPiece].mov.space[0]=(parsingPath.space)
+            pathGame.board[indexAndCoordinates.coordinatesToIndex[pathPiecePosition]] = pathGame.pieces[currentPiece]
+            console.log(pathGame.pieces[currentPiece].mov.paths)
+            console.log(pathGame.pieces[currentPiece].mov.space)
+            var highlightPathMoveList = {
+                highlightPathMoveList: move.moveListCoordinates(move.pieceMoveList(pathGame.board, pathPiecePosition))
+            }
+            ws.send(JSON.stringify(highlightPathMoveList))
+        }   
     }
 
     var pathAdd = {
         UP: function(amount){
-        
+            addToPath(-16, amount)
+        },
+        DOWN: function(amount){
+            addToPath(16, amount)
+        },
+        LEFT: function (amount){
+           addToPath(-1, amount)
+        },
+        RIGHT: function(amount){
+            addToPath(1, amount)
+        },
+        UPLEFT: function(amount){
+            addToPath(-17, amount)
+        },
+        UPRIGHT: function(amount){
+            addToPath(-15, amount)
+        },
+        DOWNLEFT: function(amount){
+            addToPath(15, amount)
+        },
+        DOWNRIGHT: function(amount){
+            addToPath(17, amount)
         }
     }
+
+    function addToPath(lengthZero, amount){
+        if(parsingPath.path.length==0){
+            parsingPath.path.push(lengthZero)
+        }
+        console.log(amount)
+        console.log(lengthZero)
+        parsingPath.path.push(amount*lengthZero)
+        parsingPath.space.push(Math.abs(lengthZero))
+    }
+
     var wss = new WebSocket.Server({ noServer: true})
     wss.on('connection', function (ws, req) {
         sessionParser(req, {}, () => {})

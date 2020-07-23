@@ -45,51 +45,51 @@
             <h2>Move Paths</h2>
             <div id = upMovement">
                 <b class = "moveAmount">Up</b>
-                <input type = "number" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
+                <input type = "number" id = "upMoveAmount" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
                 
-                <input type = "submit" class = "moveAmount" value = "Add Movement">
+                <input type = "submit" id = "upMoveSubmit" class = "submitAmount" value = "Add Movement" data-direction = "up">
             </div>
             <br>
             <div id = "downMovement">
                 <b class = "moveAmount">Down</b>
-                <input type = "number" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
-                <input type = "submit" class = "moveAmount" value = "Add Movement">
+                <input type = "number" id = "downMoveAmount" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
+                <input type = "submit" id = "downMoveSubmit" class = "submitAmount" value = "Add Movement" data-direction = "down">
             </div>
             <br>
             <div id = "leftMovement">
                 <b class = "moveAmount">Left</b>
-                <input type = "number" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
-                <input type = "submit" class = "moveAmount" value = "Add Movement">
+                <input type = "number" id = "leftMoveAmount" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
+                <input type = "submit" id = "leftMoveSubmit" class = "submitAmount" value = "Add Movement"  data-direction = "left">
             </div>
             <br>
             <div id = "rightMovement">
                 <b class = "moveAmount">Right</b>
-                <input type = "number" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
-                <input type = "submit" class = "moveAmount" value = "Add Movement">
+                <input type = "number" id = "rightMoveAmount" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
+                <input type = "submit" id = "rightMoveSubmit" class = "submitAmount" value = "Add Movement" data-direction = "right">
             </div>
             <br>
             <div id = "upLeft">
                 <b class = "moveAmount">Up Left</b>
-                <input type = "number" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
-                <input type = "submit" class = "moveAmount" value = "Add Movement">
+                <input type = "number" id = "upLeftMoveAmount" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
+                <input type = "submit" id = "upLeftMoveSubmit" class = "submitAmount" value = "Add Movement" data-direction = "upLeft">
             </div>
             <br>
             <div id = "upRight">
                 <b class = "moveAmount">Up Right</b>
-                <input type = "number" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
-                <input type = "submit" class = "moveAmount" value = "Add Movement">
+                <input type = "number" id = "upRightMoveAmount" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
+                <input type = "submit" id = "upRightMoveSubmit" class = "submitAmount" value = "Add Movement" data-direction = "upRight">
             </div>
             <br>
             <div id = "downLeft">
                 <b class = "moveAmount">Down Left</b>
-                <input type = "number" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
-                <input type = "submit" class = "moveAmount" value = "Add Movement">
+                <input type = "number" id = "downLeftMoveAmount" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
+                <input type = "submit" id = "downLeftMoveSubmit" class = "submitAmount" value = "Add Movement" data-direction = "downLeft">
             </div>
             <br>
             <div id = "downRight">
                 <b class = "moveAmount">Down Right</b>
-                <input type = "number" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
-                <input type = "submit" class = "moveAmount" value = "Add Movement">
+                <input type = "number" id = "downRightMoveAmount" class = "moveAmount" min = "1" max = "7" value = "7" size = "2">
+                <input type = "submit" id = "downRightMoveSubmit" class = "submitAmount" value = "Add Movement" data-direction = "downRight">
             </div>
             <br>
             <h3>Path</h3>
@@ -100,7 +100,7 @@
             <button id = "removeLastAddedMovement">Undo</button>
             <button id = "submitPath">Add Path To Selected Piece</button>
             <br><br>
-            
+            </div>
         </div>
         <div id = "boardMeta">
             <h3>Name</h3>

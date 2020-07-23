@@ -90,6 +90,19 @@ $(document).ready(function(){
         locateHtmlFENBoardSquares = htmlBoardControl.createLocateHtmlSquares(htmlFENBoardSquares)
         locateHtmlPathBoardSquares = htmlBoardControl.createLocateHtmlSquares(htmlPathBoardSquares)
     })
+    $(".submitAmount").click(function(){
+        if(currentPiece!=""){
+            var direction = $(this).attr('id').replace('MoveSubmit',"")
+            var amount = $("#"+direction+"MoveAmount").val()
+            var pathAddMovement = {
+                pathAddMovement: {
+                    direction: direction,
+                    amount: amount
+                }
+            }
+            socket.send(JSON.stringify(pathAddMovement))
+        }
+    })
     socket.addEventListener('open', function (event) {               
         
     });
@@ -99,7 +112,7 @@ $(document).ready(function(){
         },
         highlightPathMoveList: function(message){
             htmlBoardControl.updateHighlightedMoves(htmlPathBoardSquares, locateHtmlPathBoardSquares, message.highlightPathMoveList)
-        }
+        },
     }
 
     socket.addEventListener('message', function (message) {               
@@ -128,6 +141,15 @@ $(document).ready(function(){
     $("#FENSubmit").click(function(){
         htmlFENBoard.position($("#FEN").val())
     })
+    function sendPathUpdate(direction, amount){
+        var pathAddMovement = {
+            pathAddMovement: {
+                direction: direction,
+                amount: amount
+            }
+        }
+        socket.send(JSON.stringify(pathAddMovement))
+    }
     function currentPieceOnDragStart (source, draggedPiece, position, orientation) {
         if(draggedPiece!=currentPiece && source =='spare'){
             htmlCurrentPieceBoard.position({
