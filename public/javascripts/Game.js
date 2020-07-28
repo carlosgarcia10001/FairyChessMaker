@@ -1,7 +1,7 @@
 var boardState  = require('./BoardState')
 var piece = require('./Piece')
 var move = require('./Move')
-var AttributeMods = require('./AttributeMods')
+var attributeMods = require('./AttributeMods')
 var indexAndCoordinates = require('./IndexAndCoordinates')
 var board = new Array(128)
 var turn = 'w'
@@ -22,7 +22,7 @@ function placePieceOnBoard(parsedBoard, parsedPiece, parsedSquare){
 function activateAttributeMods(parsedBoard){
     for(var i = 0; i < parsedBoard.length;i++){
         if(boardState.validSquare(i) && parsedBoard[i].attrmods && parsedBoard[i].attrmods.length>0){
-            AttributeMods.parseMods(parsedBoard, i, parsedBoard[i].color)
+            attributeMods.parseMods(parsedBoard, i, parsedBoard[i].color)
         }
     }
 }
@@ -89,7 +89,7 @@ var game = {
     turn: 'w',
     pieces: piece.createPieces(),
     FEN: '8/8/8/8/8/8/8/8',
-    winCondition: "checkMate"
+    winCondition: "checkMate",
 }
 
 parseFEN(game.board,game.FEN,game.pieces)

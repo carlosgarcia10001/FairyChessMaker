@@ -1,4 +1,6 @@
 <h2 id = <%= id %>> <%= p %> </h2>
-<% for(var i = 0; i < list.length; i++){ %>
-    <input type= "checkbox" id = <%= list[i] %> > <%= list[i] %> </option>
+<% for(var i = 0; i < listName.length; i++){ %>
+    <div title = "<%= listDescription[i] %>" >
+        <input type= "checkbox" id = "<%= listName[i] %>" class = "<%= id %>" > <%= listName[i] %>
+    </div>
 <% } %>

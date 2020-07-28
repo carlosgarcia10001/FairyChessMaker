@@ -17,9 +17,8 @@ function createLocateHtmlSquares(htmlSquares){
 
 function highlightValidMoves(locateHtmlSquares, moveList){
     var moveset = moveList
-    
     for(var i = 0; i < moveset.length; i++){
-        if(!($(moveset[i]).hasClass('moveset'))){
+        if(!($(locateHtmlSquares[moveset[i]]).hasClass('moveset'))){
             $(locateHtmlSquares[moveset[i]]).addClass("moveset")
             $(locateHtmlSquares[moveset[i]]).css('background', highlightMove)
         }

@@ -88,8 +88,6 @@ $(document).ready(function(){
             if(data.charAt(0)=='{'){ 
                 data = JSON.parse(message.data)
                 var keys = Object.keys(data)
-                console.log(keys)
-                console.log(data)
                 for(var i = 0; i < keys.length; i++){
                     messageResponse[keys[i]](data)
                 }

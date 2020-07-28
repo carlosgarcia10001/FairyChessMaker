@@ -3,7 +3,7 @@ function createPiece(id= " ", color = "", hp = 1, dmg = 1, mov = {
     space: [],
     attPaths: [],
     attSpace: []
-}, atttype = 'normal', attrmods = [], movmods = []){
+}, atttype = 'NORMAL', attrmods = [], movmods = []){
     var piece = {
         id: id,
         color: color,

@@ -1,6 +1,6 @@
 <h2 id = <%= id %>> <%= p %> </h2>
 <select name = <%= id + "Options" %> id = <%= id + "Options" %>>
-    <% for(var i = 0; i < list.length; i++){ %>
-        <option value= <%= list[i] %> > <%= list[i] %> </option>
+    <% for(var i = 0; i < listName.length; i++){ %>
+        <option value= "<%= listName[i] %>" title = "<%= listDescription[i] %>" class = "<%= id %>"> <%= listName[i] %> </option>
     <% } %>
 </select>

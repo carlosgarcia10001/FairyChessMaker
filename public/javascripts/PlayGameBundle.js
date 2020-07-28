@@ -99,8 +99,9 @@ var indexAndCoordinates = require('./IndexAndCoordinates')
 const NP = "NOTPUBLIC"
 
 var mods = {
-    ethereal: {
+    ETHEREAL: {
         name: "Ethereal",
+        priority: 0,
         description: "This piece does not get blocked by ally pieces",
         action: function(board, square, moveList){
             loop1:
@@ -173,46 +174,48 @@ var mods = {
             }
         }
     },  
-    teleportToBeacon: 
+    TELEPORTTOBEACON: 
     {
         name: NP,
         description: NP,
+        priority: 0,
         action: function(board, square, moveList){
             var friendlySquares = boardState.pieceIndex(board, board[square].color)
             for(var i = 0; i < friendlySquares.length; i++){
                 let parsedSquare = friendlySquares[i]
-                if(boardState.pieceHasAttributeMod(board,parsedSquare,'beacon')){
-                    if(validBeaconTeleport(board,square,parsedSquare,-17)){
+                if(boardState.pieceHasAttributeMod(board,parsedSquare,'BEACON')){
+                    if(moveList.indexOf(parsedSquare-17) == -1 && validBeaconTeleport(board,square,parsedSquare,-17)){
                         moveList.push(parsedSquare-17)
                     }
-                    if(validBeaconTeleport(board,square,parsedSquare,-16)){
+                    if(moveList.indexOf(parsedSquare-16) == -1 && validBeaconTeleport(board,square,parsedSquare,-16)){
                         moveList.push(parsedSquare-16)
                     }
-                    if(validBeaconTeleport(board,square,parsedSquare,-15)){
+                    if(moveList.indexOf(parsedSquare-15) == -1 && validBeaconTeleport(board,square,parsedSquare,-15)){
                         moveList.push(parsedSquare-15)
                     }
-                    if(validBeaconTeleport(board,square,parsedSquare,-1)){
+                    if(moveList.indexOf(parsedSquare-1) == -1 && validBeaconTeleport(board,square,parsedSquare,-1)){
                         moveList.push(parsedSquare-1)
                     }
-                    if(validBeaconTeleport(board,square,parsedSquare,1)){
+                    if(moveList.indexOf(parsedSquare+1) == -1 && validBeaconTeleport(board,square,parsedSquare,1)){
                         moveList.push(parsedSquare+1)
                     }
-                    if(validBeaconTeleport(board,square,parsedSquare,17)){
+                    if(moveList.indexOf(parsedSquare+17) == -1 && validBeaconTeleport(board,square,parsedSquare,17)){
                         moveList.push(parsedSquare+17)
                     }
-                    if(validBeaconTeleport(board,square,parsedSquare,16)){
+                    if(moveList.indexOf(parsedSquare+16) == -1 && validBeaconTeleport(board,square,parsedSquare,16)){
                         moveList.push(parsedSquare+16)
                     }
-                    if(validBeaconTeleport(board,square,parsedSquare,15)){
+                    if(moveList.indexOf(parsedSquare+15) == -1 && validBeaconTeleport(board,square,parsedSquare,15)){
                         moveList.push(parsedSquare+15)
                     }
                 }
             }
         }
     },
-    protectKingly: {
+    PROTECTKINGLY: {
         name: NP,
         description: NP,
+        priority: 1,
         action: function(board, square, moveList){
                 var color = board[square].color
                 for(var i = moveList.length-1; i >= 0; i--){
@@ -231,9 +234,9 @@ function check(board, color){
     if(color == 'w'){
         enemyColor = 'b'
     }
-    var enemyMoveList = masterMoveList(board, enemyColor, ['protectKingly'])
+    var enemyMoveList = masterMoveList(board, enemyColor, ['PROTECTKINGLY'])
     for(var i = 0; i < enemyMoveList.length;i++){
-        if(boardState.pieceHasAttributeMod(board, enemyMoveList[i], 'kingly') && board[enemyMoveList[i]].color==color){
+        if(boardState.pieceHasAttributeMod(board, enemyMoveList[i], 'KINGLY') && board[enemyMoveList[i]].color==color){
             return true
         }
     }
@@ -264,27 +267,30 @@ function addTeleportMods(){
         if(!valid){
             i+=8
         }
-        mods['teleport'+i] = {
+        mods['TELEPORT'+i] = {
             name: NP,
             description: NP,
+            priority: 0,
             action: function(board, square, moveList){
                 if(boardState.emptySquare(board,i) || pieceAttack.validAttack(board, square, i)){
                     moveList.push(i)
                 }
             }
         }
-        mods['removeAbsolute'+i] = {
+        mods['REMOVEABSOLUTE'+i] = {
             name: NP,
             description: NP,
+            priority: 1,
             action: function(board,square, moveList){
                 if(boardState.validSquare(i) && moveList.indexOf(i)!=-1){
                     moveList.splice(moveList.indexOf(i),1)
                 }
             }
         }
-        mods['removeRelative'+i] = {
+        mods['REMOVERELATIVE'+i] = {
             name: NP,
             description: NP, 
+            priority: 1,
             action: function(board,square, moveList){
                 if(boardState.validSquare(square+i) && moveList.indexOf(square+i)!=-1){
                         moveList.splice(moveList.indexOf(square+i),1)
@@ -292,22 +298,46 @@ function addTeleportMods(){
                 }
             }
         }
+    for(let i = -120; i < 0; i++){
+        mods['REMOVERELATIVE'+i] = {
+            name: NP,
+            description: NP, 
+            priority: 1, 
+            action: function(board,square, moveList){
+                if(boardState.validSquare(square+i) && moveList.indexOf(square+i)!=-1){
+                    moveList.splice(moveList.indexOf(square+i),1)
+                }
+            }
+        }
+    }
 }
-
 addTeleportMods()
 
 function validBeaconTeleport(board, square, beaconIndex, offset){
     var parsedSquare = beaconIndex+offset
-    return boardState.validSquare(parsedSquare) && (pieceAttack.attackTypes[board[square].atttype](board, square, parsedSquare) || boardState.emptySquare(board, parsedSquare))
+    return boardState.validSquare(parsedSquare) && (pieceAttack.attackTypes[board[square].atttype].action(board, square, parsedSquare) || boardState.emptySquare(board, parsedSquare))
 }
 
-function parseMoveMods(board, square, moveList, ignoreList = []){
-    for(let i = 0; i < board[square].movmods.length;i++){
-        var mod = board[square].movmods[i]
-        if(ignoreList.indexOf(mod)==-1){
-            mods[mod].action(board, square, moveList)
+function parseMoveMods(board, square, moveList, ignoreList = []){ //Make this more efficient late, a double for loop is most likely not necessary
+    for(let i = 0; i < 2;i++){
+        for(let j = 0; j < board[square].movmods.length; j++){
+            var mod = board[square].movmods[j]
+            if(ignoreList.indexOf(mod)==-1 && mods[mod].priority==i){
+                mods[mod].action(board, square, moveList)
+            }
         }
     }
+}
+
+function getMoveModNames(moveModList){
+    var modNames = []
+    for(var i = 0; i < moveModList.length; i++){
+        var modName = mods[moveModList[i]].name
+        if(modName!="NP"){
+            modNames.push(mods[moveModList[i]].name)
+        }
+    }
+    return modNames
 }
 
 var masterMoveList = function(board, color, ignoreList){
@@ -395,44 +425,6 @@ var pieceMoveList = function(board, square, ignoreList){
                 parsedSquare-=space*add
         }
     }
-    /*for(var i = 0; i < board[square].mov.length;i++){
-        var parsedSquare = position+board[square].mov[i]
-        var j = 0
-        while(boardState.validSquare(parsedSquare) && j < board[square].movdur[i]){
-            if(movIsDmgMov){ //Optimization so that if mov==dmgMov, the program does not do the same evaluations twice
-                if(boardState.occupiedSquare(board,parsedSquare) && pieceAttack.validAttack(board,square,parsedSquare)){ 
-                    moveList.push(parsedSquare)
-                    break  
-                }
-                else if(boardState.occupiedSquare(board,parsedSquare) && !pieceAttack.validAttack(board,square,parsedSquare)){
-                    break
-                }
-            }
-            else if(boardState.occupiedSquare(board,parsedSquare)){ 
-                break
-            }
-            moveList.push(parsedSquare)
-            parsedSquare+=board[square].mov[i]
-            j++
-        }
-    }
-    if(!movIsDmgMov){
-        for(var i = 0; i < board[square].dmgmov.length;i++){
-            var parsedSquare = position+board[square].dmgmov[i]
-            var j = 0
-            while(boardState.validSquare(parsedSquare) && j < board[square].dmgmovdur[i]){
-                if(boardState.occupiedSquare(board,parsedSquare) && pieceAttack.validAttack(board,square,parsedSquare)){ 
-                    moveList.push(parsedSquare)
-                    break  
-                }
-                else if(boardState.occupiedSquare(board,parsedSquare) && !pieceAttack.validAttack(board,square,parsedSquare)){
-                    break
-                }
-                parsedSquare+=board[square].dmgmov[i]
-                j++
-            }
-        }
-    }*/
     parseMoveMods(board,square,moveList, ignoreList)
     return moveList
 }
@@ -478,14 +470,14 @@ exports.masterMoveList = masterMoveList
 exports.moveListCoordinates = moveListCoordinates
 exports.checkMate = checkMate
 exports.mods = mods
-
+exports.getMoveModNames = getMoveModNames
 },{"./BoardState":1,"./IndexAndCoordinates":2,"./Piece":4,"./PieceAttack":5}],4:[function(require,module,exports){
 function createPiece(id= " ", color = "", hp = 1, dmg = 1, mov = {
     paths: [],
     space: [],
     attPaths: [],
     attSpace: []
-}, atttype = 'normal', attrmods = [], movmods = []){
+}, atttype = 'NORMAL', attrmods = [], movmods = []){
     var piece = {
         id: id,
         color: color,
@@ -551,30 +543,30 @@ exports.addAttPath = addAttPath
 },{}],5:[function(require,module,exports){
 var boardState = require('./BoardState')
 var attackTypes = { 
-    normal: {
+    NORMAL: {
         name: "Normal",
         description: "This piece can only capture enemy pieces",
         action: function(board, initial, target){ 
             return boardState.enemySquare(board,initial,target)
         }
     },
-    friendlyfire: {
+    FRIENDLYFIRE: {
         name: "Friendly Fire",
         description: "This piece can capture enemy or ally pieces",
         action: function(board,initial,target){ 
             return boardState.occupiedSquare(board,target)
         }
     },
-    pacifist: {
+    PACIFIST: {
         name: "Pacifist",
         description: "This piece can not capture other pieces",
         action: function(board, initial, target){ 
             return false
         }
     },
-    traitor:{
+    TRAITOR:{
         name: "Traitor",
-        desciption: "This piece can only capture ally pieces",
+        description: "This piece can only capture ally pieces",
         action: function(board, initial, target){
             return boardState.allySquare(board,initial,target)
         }
@@ -582,7 +574,7 @@ var attackTypes = {
 }
 
 function validAttack(board, square, target){
-    return boardState.occupiedSquare(board, target) && attackTypes[board[square].atttype].action(board, square, target)
+    return boardState.occupiedSquare(board, target) && attackTypes[board[square].atttype.toUpperCase()].action(board, square, target)
 }
 
 exports.validAttack = validAttack
@@ -678,8 +670,6 @@ $(document).ready(function(){
             if(data.charAt(0)=='{'){ 
                 data = JSON.parse(message.data)
                 var keys = Object.keys(data)
-                console.log(keys)
-                console.log(data)
                 for(var i = 0; i < keys.length; i++){
                     messageResponse[keys[i]](data)
                 }
@@ -756,9 +746,8 @@ function createLocateHtmlSquares(htmlSquares){
 
 function highlightValidMoves(locateHtmlSquares, moveList){
     var moveset = moveList
-    
     for(var i = 0; i < moveset.length; i++){
-        if(!($(moveset[i]).hasClass('moveset'))){
+        if(!($(locateHtmlSquares[moveset[i]]).hasClass('moveset'))){
             $(locateHtmlSquares[moveset[i]]).addClass("moveset")
             $(locateHtmlSquares[moveset[i]]).css('background', highlightMove)
         }

@@ -2,41 +2,69 @@
 var boardState = require('./BoardState')
 var helper = require('./AttributeModsHelper')
 var mods ={
-    beacon: {
+    BEACON: {
         name: "Beacon",
         description: "Ally pieces can teleport to within a one square radius of this piece, no matter their location.",
         action: function(board, color){
                     var friendlySquares = boardState.pieceIndex(board, color)
                     for(var i = 0; i < friendlySquares.length; i++){
-                        if(!boardState.pieceHasAttributeMod(board, friendlySquares[i],'beacon')){
-                            helper.addMoveMod(board, friendlySquares[i], 'teleportToBeacon')
+                        if(!boardState.pieceHasAttributeMod(board, friendlySquares[i],'BEACON')){
+                            helper.addMoveMod(board, friendlySquares[i], 'TELEPORTTOBEACON')
+                        }
+                    }
+        },
+        removal: function(board, color){
+                    var friendlySquares = boardState.pieceIndex(board,color)
+                    for(var i = 0; i < friendlySquares.length; i++){
+                        if(board[friendlySquares[i]].movmods.indexOf('TELEPORTTOBEACON')!=-1){
+                            board[friendlySquares[i]].movmods.splice(board[friendlySquares[i]].movmods.indexOf('TELEPORTTOBEACON'),1)
                         }
                     }
         }
     },
-    kingly: {
+    KINGLY: {
         name: "Kingly",
         description: "This piece must be protected by ally pieces at all costs. Can only be applied to one piece per game.",
         action: function(board, color){
                     var friendlySquares = boardState.pieceIndex(board,color)
                     for(var i = 0; i < friendlySquares.length; i++){
-                        if(board[friendlySquares[i]].movmods.indexOf('protectKingly')==-1){
-                            helper.addMoveMod(board, friendlySquares[i], 'protectKingly')
+                        if(board[friendlySquares[i]].movmods.indexOf('PROTECTKINGLY')==-1){
+                            helper.addMoveMod(board, friendlySquares[i], 'PROTECTKINGLY')
                         }
                     }
-        } 
+        },
+        removal: function(board, color){
+                    var friendlySquares = boardState.pieceIndex(board,color)
+                    for(var i = 0; i < friendlySquares.length; i++){
+                        if(board[friendlySquares[i]].movmods.indexOf('PROTECTKINGLY')!=-1){
+                            board[friendlySquares[i]].movmods.splice(board[friendlySquares[i]].movmods.indexOf('PROTECTKINGLY'),1)
+                        }
+                    }
+        }
     }
 }
 
 function parseMods(parsedBoard, parsedSquare, color){
     for(var i = 0; i < parsedBoard[parsedSquare].attrmods.length;i++){
-        var mod = parsedBoard[parsedSquare].attrmods[i]
+        var mod = parsedBoard[parsedSquare].attrmods[i].toUpperCase()
         mods[mod].action(parsedBoard, color)
     }
 }
 
+function getAttributeModNames(attributeModList){
+    attributeNameList = []
+    for(var i = 0; i < attributeModList.length; i++){
+        var modName = mods[attributeModList[i]].name
+        if(modName!= "NP"){
+            attributeNameList.push(modName)
+        }
+    }
+    return attributeNameList
+}
+
 exports.parseMods = parseMods
 exports.mods = mods
+exports.getAttributeModNames = getAttributeModNames
 },{"./AttributeModsHelper":2,"./BoardState":3}],2:[function(require,module,exports){
 function addMoveMod(board, square, mod){
     board[square].movmods.push(mod)
@@ -115,7 +143,7 @@ if(typeof exports != 'undefined'){
 var boardState  = require('./BoardState')
 var piece = require('./Piece')
 var move = require('./Move')
-var AttributeMods = require('./AttributeMods')
+var attributeMods = require('./AttributeMods')
 var indexAndCoordinates = require('./IndexAndCoordinates')
 var board = new Array(128)
 var turn = 'w'
@@ -136,7 +164,7 @@ function placePieceOnBoard(parsedBoard, parsedPiece, parsedSquare){
 function activateAttributeMods(parsedBoard){
     for(var i = 0; i < parsedBoard.length;i++){
         if(boardState.validSquare(i) && parsedBoard[i].attrmods && parsedBoard[i].attrmods.length>0){
-            AttributeMods.parseMods(parsedBoard, i, parsedBoard[i].color)
+            attributeMods.parseMods(parsedBoard, i, parsedBoard[i].color)
         }
     }
 }
@@ -203,7 +231,7 @@ var game = {
     turn: 'w',
     pieces: piece.createPieces(),
     FEN: '8/8/8/8/8/8/8/8',
-    winCondition: "checkMate"
+    winCondition: "checkMate",
 }
 
 parseFEN(game.board,game.FEN,game.pieces)
@@ -217,11 +245,11 @@ exports.boardHistory = boardHistory
 exports.createFEN = createFEN
 exports.parseFEN = parseFEN
 exports.activateAttributeMods = activateAttributeMods
+
 },{"./AttributeMods":1,"./BoardState":3,"./IndexAndCoordinates":7,"./Move":8,"./Piece":9}],5:[function(require,module,exports){
 var piece = require('./Piece')
 var indexAndCoordinates = require('./IndexAndCoordinates')
 var game = require('./Game')
-var currentPieceBoard = new Array(128)
 var htmlBoardControl = require('./HtmlBoardControl')
 var abbreviationTranslator = require('./abbreviationTranslator')
 const socket = new WebSocket('ws://localhost:3000/gamecreate/')
@@ -279,7 +307,7 @@ var diagonalSpaceUpLeft = 17
 var diagonalSpaceUpRight = 15
 var diagonalSpaceDownLeft = 15
 var diagonalSpaceDownRight = 17
-game.initializeBoard(currentPieceBoard)
+
 $(document).ready(function(){
     var htmlSquares = []
     var htmlFENBoardSquares = []
@@ -290,9 +318,9 @@ $(document).ready(function(){
     var locateHtmlPathBoardSquares = {}
     var locateHtmlSquares = {}
     var pieces = piece.createPieces()
-    var currentPiece = ""
-    var currentPiecePosition = -1
-    var pathPiecePositoin = -1
+    var currentPiece = "wP"
+    var currentPiecePosition = 'd4'
+    var pathPiecePositoin = 'd4'
     $(document).on('load',function(){
         htmlSquares = htmlBoardControl.createHtmlSquares()
         for(var i = 0; i < htmlSquares.length; i++){
@@ -314,6 +342,12 @@ $(document).ready(function(){
         if(currentPiece!=""){
             var direction = $(this).attr('id').replace('MoveSubmit',"")
             var amount = $("#"+direction+"MoveAmount").val()
+            if(amount > 7){
+                amount = 7
+            }
+            else if(amount < 1){
+                amount = 1
+            }
             var pathAddMovement = {
                 pathAddMovement: {
                     direction: direction,
@@ -323,9 +357,7 @@ $(document).ready(function(){
             socket.send(JSON.stringify(pathAddMovement))
         }
     })
-    socket.addEventListener('open', function (event) {               
-        
-    });
+
     var messageResponse = {
         highlightCurrentPieceMoveList: function(message){
             htmlBoardControl.updateHighlightedMoves(htmlCurrentPieceBoardSquares, locateHtmlCurrentPieceBoardSquares, message.highlightCurrentPieceMoveList)
@@ -333,6 +365,40 @@ $(document).ready(function(){
         highlightPathMoveList: function(message){
             htmlBoardControl.updateHighlightedMoves(htmlPathBoardSquares, locateHtmlPathBoardSquares, message.highlightPathMoveList)
         },
+        highlightFENMoveList: function(message){
+            htmlBoardControl.updateHighlightedMoves(htmlFENBoardSquares, locateHtmlFENBoardSquares, message.highlightFENMoveList)
+        },
+        getAttributeMods: function(message){
+            var attributeMods = message.getAttributeMods
+            $(".attributeMods").prop("checked", false)
+            for(var i = 0; i < attributeMods.length; i++){
+                $("#"+attributeMods[i]).prop("checked", true)
+            }
+        },
+        getMoveMods: function(message){
+            var moveMods = message.getMoveMods
+            $(".moveMods").prop("checked", false)
+            for(var i = 0; i < moveMods.length; i++){
+                $("#"+moveMods[i]).prop("checked", true)
+            }
+        },
+        getAttackType: function(message){
+            var attackType = message.getAttackType
+            console.log(attackType == 'NORMAL')
+            switch(attackType){
+                case 'NORMAL': 
+                    $("#attackTypesOptions").val('Normal')
+                break;
+                case 'FRIENDLY FIRE':
+                    $("#attackTypesOptions").val('Friendly Fire')
+                break;
+                case 'PACIFIST':
+                    $("#attackTypesOptions").val('Pacifist')
+                break;
+                case 'TRAITOR':
+                    $("#attackTypesOptions").val('Traitor')
+            }
+        }
     }
 
     socket.addEventListener('message', function (message) {               
@@ -361,15 +427,127 @@ $(document).ready(function(){
     $("#FENSubmit").click(function(){
         htmlFENBoard.position($("#FEN").val())
     })
-    function sendPathUpdate(direction, amount){
-        var pathAddMovement = {
-            pathAddMovement: {
-                direction: direction,
-                amount: amount
+    $("#submitPath").click(function(){
+        var message = {
+            submitPath: "submitPath"
+        }
+        socket.send(JSON.stringify(message))
+    })
+    $("#undoButton").click(function(){
+        var message = {
+            undoPath: "undoPath"
+        }
+        socket.send(JSON.stringify(message))
+    })
+    $('input[class*="Mods"]').change(function(){
+        var id = $(this).attr('id')
+        var name = $(this).attr('class')
+        if(currentPiece!=""){
+            if(name =="moveMods"){
+                if($(this).prop('checked')){
+                    socket.send(JSON.stringify({
+                        moveModAdd: id.toUpperCase()
+                    }))
+                }
+                else{
+                    socket.send(JSON.stringify({
+                        moveModRemove: id.toUpperCase()
+                    }))
+                }
+            }
+            else if(name == "attributeMods"){
+                if($(this).prop('checked')){
+                    socket.send(JSON.stringify({
+                        attributeModAdd: id.toUpperCase()
+                    }))
+                }
+                else{
+                    socket.send(JSON.stringify({
+                        attributeModRemove: id.toUpperCase()
+                    }))
+                }
             }
         }
-        socket.send(JSON.stringify(pathAddMovement))
-    }
+    })
+    
+    $('#attackTypesOptions').change(function(){
+        var message = $(this).val().toUpperCase()
+        if(currentPiece!=""){
+            socket.send(JSON.stringify({
+                attackTypeChange: message
+            }))
+        }
+    })
+    $('#lethalMovePath').attr('title', 'Allows movement on occupied squares that the piece can attack');
+    $('#nonLethalMovePath').attr('title', 'Allows movement on unoccupied squares')
+    $('#mirrorPieceSelect').change(function(){
+        if($(this).prop('checked')){
+            socket.send(JSON.stringify({
+                mirrorPieceSelect: "selected"
+            }))
+        }
+        else{
+            socket.send(JSON.stringify({
+                mirrorPieceSelect: "unselected"
+            }))
+        }
+    })
+    $('#lethalMovePathSelect').change(function(){
+        if($(this).prop('checked')){
+            socket.send(JSON.stringify({
+                lethalMovePathSelect: "selected"
+            }))
+        }
+        else{
+            socket.send(JSON.stringify({
+                lethalMovePathSelect: "unselected"
+            }))
+        }
+    })
+    $('#nonLethalMovePathSelect').change(function(){
+        if($(this).prop('checked')){
+            socket.send(JSON.stringify({
+                nonLethalMovePathSelect: "selected"
+            }))
+        }
+        else{
+            socket.send(JSON.stringify({
+                nonLethalMovePathSelect: "unselected"
+            }))
+        }
+    })
+    $('#addIndividualSquareSubmit').click(function(){
+        var row = $('#addIndividualSquareRowAmount').val()
+        var column = $('#addIndividualSquareColumnAmount').val()
+        socket.send(JSON.stringify({
+            addIndividualSquare: {
+                row: row,
+                column: column
+            }
+        }))
+    })
+    $('#absoluteTeleportSubmit').click(function(){
+        var teleport = $('#absoluteTeleportAmount').val()
+        console.log(typeof(teleport))
+        socket.send(JSON.stringify({
+            absoluteTeleport: teleport
+        }))
+    })
+    $('#relativeDenyMovementSubmit').click(function(){
+        var row = $('#relativeDenyMovementRowAmount').val()
+        var column = $('#relativeDenyMovementColumnAmount').val()
+        socket.send(JSON.stringify({
+            relativeDenyMovement: {
+                row: row,
+                column: column
+            }
+        }))
+    })
+    $('#absoluteDenyMovementSubmit').click(function(){
+        socket.send(JSON.stringify({
+                absoluteDenyMovement: $('#absoluteDenyMovementAmount').val()
+        }))
+    })
     function currentPieceOnDragStart (source, draggedPiece, position, orientation) {
         if(draggedPiece!=currentPiece && source =='spare'){
             htmlCurrentPieceBoard.position({
@@ -378,17 +556,20 @@ $(document).ready(function(){
             htmlPathBoard.position({
                 d4: draggedPiece
             })
-            currentPieceBoard[indexAndCoordinates.coordinatesToIndex[currentPiecePosition]] = piece.createPiece()
             currentPiecePosition = 'd4'
             pathPiecePosition = 'd4'
             currentPiece = draggedPiece
-            currentPieceBoard[indexAndCoordinates.coordinatesToIndex['d4']] = pieces[currentPiece]
             $("#pieceName").text(currentPiece)
-            htmlBoardControl.updateHighlightedMovesOnGameCreator(currentPieceBoard, currentPiecePosition, htmlSquares, locateHtmlCurrentPieceBoardSquares)
             var currentPieceSend = {
-                currentPiece: draggedPiece
+                currentPiece: draggedPiece,
             }
             socket.send(JSON.stringify(currentPieceSend))
+            socket.send(JSON.stringify({
+                getMoveMods: ""
+            }))
+            socket.send(JSON.stringify({
+                getAttributeMods: ""
+            }))
             return false
         }
         if(draggedPiece==currentPiece && source == 'spare'){
@@ -397,24 +578,28 @@ $(document).ready(function(){
     }
 
     function currentPieceOnDrop(source, target, piece, newPos, oldPos, orientation){
-        currentPiecePosition = Object.keys(newPos)[0]
-        var currentPiecePosition = {
-            currentPiecePosition: {
-                from: Object.keys(oldPos)[0],
-                to: Object.keys(newPos)[0]
+        if(target != 'offboard'){
+            currentPiecePosition = Object.keys(newPos)[0]
+            var currentPiecePosition = {
+                currentPiecePosition: {
+                    from: Object.keys(oldPos)[0],
+                    to: Object.keys(newPos)[0]
+                }
             }
+            socket.send(JSON.stringify(currentPiecePosition))
         }
-        socket.send(JSON.stringify(currentPiecePosition))
     }
     function pathBoardOnDrop(source, target, piece, newPos, oldPos, orientation){
-        pathPiecePosition = Object.keys(newPos)[0]
-        var pathPiecePosition = {
-            pathPiecePosition: {
-                from: Object.keys(oldPos)[0],
-                to: Object.keys(newPos)[0]
+        if(target != 'offboard'){
+            pathPiecePosition = Object.keys(newPos)[0]
+            var pathPiecePosition = {
+                pathPiecePosition: {
+                    from: Object.keys(oldPos)[0],
+                    to: Object.keys(newPos)[0]
+                }
             }
+            socket.send(JSON.stringify(pathPiecePosition))
         }
-        socket.send(JSON.stringify(pathPiecePosition))
     }
 
     function htmlFENBoardOnDrop(source, target, piece, newPos, oldPos, orientation){
@@ -426,25 +611,69 @@ $(document).ready(function(){
         socket.send(JSON.stringify(FENSend))
     }
 
+    function htmlFENBoardOnMouseoverSquare(square, piece){
+        if(piece!=false){
+            var highlightFENMoveList = {
+                highlightFENMoveList: {
+                    square: square,
+                    piece: piece
+                }
+            }
+            socket.send(JSON.stringify(highlightFENMoveList))
+        }
+    }
+
+    function FENBoardOnMouseoutSquare(){
+        htmlBoardControl.unHighlightValidMoves(htmlFENBoardSquares)
+    }
+
+    function htmlFENBoardOnDragStart(source, draggedPiece, position, orientation){
+        htmlCurrentPieceBoard.position({
+            d4: draggedPiece
+        })
+        htmlPathBoard.position({
+            d4: draggedPiece
+        })
+        currentPiecePosition = 'd4'
+        pathPiecePosition = 'd4'
+        currentPiece = draggedPiece
+        $("#pieceName").text(currentPiece)
+        var currentPieceSend = {
+            currentPiece: draggedPiece,
+        }
+        socket.send(JSON.stringify(currentPieceSend))
+        socket.send(JSON.stringify({
+            getMoveMods: ""
+        }))
+        socket.send(JSON.stringify({
+            getAttributeMods: ""
+        }))
+    }
     var pieceTheme = "../images/chesspieces/wikipedia/{piece}.png"
     
     var FENConfig = {
         pieceTheme: pieceTheme,
         sparePieces: true,
         dropOffBoard: 'trash',
-        onDrop: htmlFENBoardOnDrop
+        onDrop: htmlFENBoardOnDrop,
+        onDragStart: htmlFENBoardOnDragStart,
+        onMouseoverSquare: htmlFENBoardOnMouseoverSquare,
+        onMouseoutSquare: FENBoardOnMouseoutSquare
     }
 
     var currentPieceConfig = {
         pieceTheme: pieceTheme, 
-        sparePieces: true,
-        onDragStart: currentPieceOnDragStart,
-        onDrop: currentPieceOnDrop
+        sparePieces: false,
+        draggable: true,
+        onDrop: currentPieceOnDrop,
+        position: {
+            d4: "wP"
+        }
     }
 
     var htmlFENBoard = Chessboard('FENBoard', FENConfig)
     var htmlCurrentPieceBoard = Chessboard('currentPieceBoard', currentPieceConfig)
-    var htmlPathBoard = Chessboard('pathBoard', {pieceTheme: pieceTheme, onDrop: pathBoardOnDrop, draggable: true})
+    var htmlPathBoard = Chessboard('pathBoard', {pieceTheme: pieceTheme, onDrop: pathBoardOnDrop, draggable: true, position: {d4: "wP"}})
     $(document).trigger('load')
 })
 },{"./Game":4,"./HtmlBoardControl":6,"./IndexAndCoordinates":7,"./Piece":9,"./abbreviationTranslator":11}],6:[function(require,module,exports){
@@ -467,9 +696,8 @@ function createLocateHtmlSquares(htmlSquares){
 
 function highlightValidMoves(locateHtmlSquares, moveList){
     var moveset = moveList
-    
     for(var i = 0; i < moveset.length; i++){
-        if(!($(moveset[i]).hasClass('moveset'))){
+        if(!($(locateHtmlSquares[moveset[i]]).hasClass('moveset'))){
             $(locateHtmlSquares[moveset[i]]).addClass("moveset")
             $(locateHtmlSquares[moveset[i]]).css('background', highlightMove)
         }
@@ -568,8 +796,9 @@ var indexAndCoordinates = require('./IndexAndCoordinates')
 const NP = "NOTPUBLIC"
 
 var mods = {
-    ethereal: {
+    ETHEREAL: {
         name: "Ethereal",
+        priority: 0,
         description: "This piece does not get blocked by ally pieces",
         action: function(board, square, moveList){
             loop1:
@@ -642,46 +871,48 @@ var mods = {
             }
         }
     },  
-    teleportToBeacon: 
+    TELEPORTTOBEACON: 
     {
         name: NP,
         description: NP,
+        priority: 0,
         action: function(board, square, moveList){
             var friendlySquares = boardState.pieceIndex(board, board[square].color)
             for(var i = 0; i < friendlySquares.length; i++){
                 let parsedSquare = friendlySquares[i]
-                if(boardState.pieceHasAttributeMod(board,parsedSquare,'beacon')){
-                    if(validBeaconTeleport(board,square,parsedSquare,-17)){
+                if(boardState.pieceHasAttributeMod(board,parsedSquare,'BEACON')){
+                    if(moveList.indexOf(parsedSquare-17) == -1 && validBeaconTeleport(board,square,parsedSquare,-17)){
                         moveList.push(parsedSquare-17)
                     }
-                    if(validBeaconTeleport(board,square,parsedSquare,-16)){
+                    if(moveList.indexOf(parsedSquare-16) == -1 && validBeaconTeleport(board,square,parsedSquare,-16)){
                         moveList.push(parsedSquare-16)
                     }
-                    if(validBeaconTeleport(board,square,parsedSquare,-15)){
+                    if(moveList.indexOf(parsedSquare-15) == -1 && validBeaconTeleport(board,square,parsedSquare,-15)){
                         moveList.push(parsedSquare-15)
                     }
-                    if(validBeaconTeleport(board,square,parsedSquare,-1)){
+                    if(moveList.indexOf(parsedSquare-1) == -1 && validBeaconTeleport(board,square,parsedSquare,-1)){
                         moveList.push(parsedSquare-1)
                     }
-                    if(validBeaconTeleport(board,square,parsedSquare,1)){
+                    if(moveList.indexOf(parsedSquare+1) == -1 && validBeaconTeleport(board,square,parsedSquare,1)){
                         moveList.push(parsedSquare+1)
                     }
-                    if(validBeaconTeleport(board,square,parsedSquare,17)){
+                    if(moveList.indexOf(parsedSquare+17) == -1 && validBeaconTeleport(board,square,parsedSquare,17)){
                         moveList.push(parsedSquare+17)
                     }
-                    if(validBeaconTeleport(board,square,parsedSquare,16)){
+                    if(moveList.indexOf(parsedSquare+16) == -1 && validBeaconTeleport(board,square,parsedSquare,16)){
                         moveList.push(parsedSquare+16)
                     }
-                    if(validBeaconTeleport(board,square,parsedSquare,15)){
+                    if(moveList.indexOf(parsedSquare+15) == -1 && validBeaconTeleport(board,square,parsedSquare,15)){
                         moveList.push(parsedSquare+15)
                     }
                 }
             }
         }
     },
-    protectKingly: {
+    PROTECTKINGLY: {
         name: NP,
         description: NP,
+        priority: 1,
         action: function(board, square, moveList){
                 var color = board[square].color
                 for(var i = moveList.length-1; i >= 0; i--){
@@ -700,9 +931,9 @@ function check(board, color){
     if(color == 'w'){
         enemyColor = 'b'
     }
-    var enemyMoveList = masterMoveList(board, enemyColor, ['protectKingly'])
+    var enemyMoveList = masterMoveList(board, enemyColor, ['PROTECTKINGLY'])
     for(var i = 0; i < enemyMoveList.length;i++){
-        if(boardState.pieceHasAttributeMod(board, enemyMoveList[i], 'kingly') && board[enemyMoveList[i]].color==color){
+        if(boardState.pieceHasAttributeMod(board, enemyMoveList[i], 'KINGLY') && board[enemyMoveList[i]].color==color){
             return true
         }
     }
@@ -733,27 +964,30 @@ function addTeleportMods(){
         if(!valid){
             i+=8
         }
-        mods['teleport'+i] = {
+        mods['TELEPORT'+i] = {
             name: NP,
             description: NP,
+            priority: 0,
             action: function(board, square, moveList){
                 if(boardState.emptySquare(board,i) || pieceAttack.validAttack(board, square, i)){
                     moveList.push(i)
                 }
             }
         }
-        mods['removeAbsolute'+i] = {
+        mods['REMOVEABSOLUTE'+i] = {
             name: NP,
             description: NP,
+            priority: 1,
             action: function(board,square, moveList){
                 if(boardState.validSquare(i) && moveList.indexOf(i)!=-1){
                     moveList.splice(moveList.indexOf(i),1)
                 }
             }
         }
-        mods['removeRelative'+i] = {
+        mods['REMOVERELATIVE'+i] = {
             name: NP,
             description: NP, 
+            priority: 1,
             action: function(board,square, moveList){
                 if(boardState.validSquare(square+i) && moveList.indexOf(square+i)!=-1){
                         moveList.splice(moveList.indexOf(square+i),1)
@@ -761,22 +995,46 @@ function addTeleportMods(){
                 }
             }
         }
+    for(let i = -120; i < 0; i++){
+        mods['REMOVERELATIVE'+i] = {
+            name: NP,
+            description: NP, 
+            priority: 1, 
+            action: function(board,square, moveList){
+                if(boardState.validSquare(square+i) && moveList.indexOf(square+i)!=-1){
+                    moveList.splice(moveList.indexOf(square+i),1)
+                }
+            }
+        }
+    }
 }
-
 addTeleportMods()
 
 function validBeaconTeleport(board, square, beaconIndex, offset){
     var parsedSquare = beaconIndex+offset
-    return boardState.validSquare(parsedSquare) && (pieceAttack.attackTypes[board[square].atttype](board, square, parsedSquare) || boardState.emptySquare(board, parsedSquare))
+    return boardState.validSquare(parsedSquare) && (pieceAttack.attackTypes[board[square].atttype].action(board, square, parsedSquare) || boardState.emptySquare(board, parsedSquare))
 }
 
-function parseMoveMods(board, square, moveList, ignoreList = []){
-    for(let i = 0; i < board[square].movmods.length;i++){
-        var mod = board[square].movmods[i]
-        if(ignoreList.indexOf(mod)==-1){
-            mods[mod].action(board, square, moveList)
+function parseMoveMods(board, square, moveList, ignoreList = []){ //Make this more efficient late, a double for loop is most likely not necessary
+    for(let i = 0; i < 2;i++){
+        for(let j = 0; j < board[square].movmods.length; j++){
+            var mod = board[square].movmods[j]
+            if(ignoreList.indexOf(mod)==-1 && mods[mod].priority==i){
+                mods[mod].action(board, square, moveList)
+            }
         }
     }
+}
+
+function getMoveModNames(moveModList){
+    var modNames = []
+    for(var i = 0; i < moveModList.length; i++){
+        var modName = mods[moveModList[i]].name
+        if(modName!="NP"){
+            modNames.push(mods[moveModList[i]].name)
+        }
+    }
+    return modNames
 }
 
 var masterMoveList = function(board, color, ignoreList){
@@ -864,44 +1122,6 @@ var pieceMoveList = function(board, square, ignoreList){
                 parsedSquare-=space*add
         }
     }
-    /*for(var i = 0; i < board[square].mov.length;i++){
-        var parsedSquare = position+board[square].mov[i]
-        var j = 0
-        while(boardState.validSquare(parsedSquare) && j < board[square].movdur[i]){
-            if(movIsDmgMov){ //Optimization so that if mov==dmgMov, the program does not do the same evaluations twice
-                if(boardState.occupiedSquare(board,parsedSquare) && pieceAttack.validAttack(board,square,parsedSquare)){ 
-                    moveList.push(parsedSquare)
-                    break  
-                }
-                else if(boardState.occupiedSquare(board,parsedSquare) && !pieceAttack.validAttack(board,square,parsedSquare)){
-                    break
-                }
-            }
-            else if(boardState.occupiedSquare(board,parsedSquare)){ 
-                break
-            }
-            moveList.push(parsedSquare)
-            parsedSquare+=board[square].mov[i]
-            j++
-        }
-    }
-    if(!movIsDmgMov){
-        for(var i = 0; i < board[square].dmgmov.length;i++){
-            var parsedSquare = position+board[square].dmgmov[i]
-            var j = 0
-            while(boardState.validSquare(parsedSquare) && j < board[square].dmgmovdur[i]){
-                if(boardState.occupiedSquare(board,parsedSquare) && pieceAttack.validAttack(board,square,parsedSquare)){ 
-                    moveList.push(parsedSquare)
-                    break  
-                }
-                else if(boardState.occupiedSquare(board,parsedSquare) && !pieceAttack.validAttack(board,square,parsedSquare)){
-                    break
-                }
-                parsedSquare+=board[square].dmgmov[i]
-                j++
-            }
-        }
-    }*/
     parseMoveMods(board,square,moveList, ignoreList)
     return moveList
 }
@@ -947,14 +1167,14 @@ exports.masterMoveList = masterMoveList
 exports.moveListCoordinates = moveListCoordinates
 exports.checkMate = checkMate
 exports.mods = mods
-
+exports.getMoveModNames = getMoveModNames
 },{"./BoardState":3,"./IndexAndCoordinates":7,"./Piece":9,"./PieceAttack":10}],9:[function(require,module,exports){
 function createPiece(id= " ", color = "", hp = 1, dmg = 1, mov = {
     paths: [],
     space: [],
     attPaths: [],
     attSpace: []
-}, atttype = 'normal', attrmods = [], movmods = []){
+}, atttype = 'NORMAL', attrmods = [], movmods = []){
     var piece = {
         id: id,
         color: color,
@@ -1020,30 +1240,30 @@ exports.addAttPath = addAttPath
 },{}],10:[function(require,module,exports){
 var boardState = require('./BoardState')
 var attackTypes = { 
-    normal: {
+    NORMAL: {
         name: "Normal",
         description: "This piece can only capture enemy pieces",
         action: function(board, initial, target){ 
             return boardState.enemySquare(board,initial,target)
         }
     },
-    friendlyfire: {
+    FRIENDLYFIRE: {
         name: "Friendly Fire",
         description: "This piece can capture enemy or ally pieces",
         action: function(board,initial,target){ 
             return boardState.occupiedSquare(board,target)
         }
     },
-    pacifist: {
+    PACIFIST: {
         name: "Pacifist",
         description: "This piece can not capture other pieces",
         action: function(board, initial, target){ 
             return false
         }
     },
-    traitor:{
+    TRAITOR:{
         name: "Traitor",
-        desciption: "This piece can only capture ally pieces",
+        description: "This piece can only capture ally pieces",
         action: function(board, initial, target){
             return boardState.allySquare(board,initial,target)
         }
@@ -1051,7 +1271,7 @@ var attackTypes = {
 }
 
 function validAttack(board, square, target){
-    return boardState.occupiedSquare(board, target) && attackTypes[board[square].atttype].action(board, square, target)
+    return boardState.occupiedSquare(board, target) && attackTypes[board[square].atttype.toUpperCase()].action(board, square, target)
 }
 
 exports.validAttack = validAttack

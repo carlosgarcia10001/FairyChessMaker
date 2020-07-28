@@ -9,33 +9,13 @@
         <div id = "boards">
             <div id="FENBoard" class = "board" style="width: 500px"></div>
             <div id="currentPieceBoard" class = "board" style="width: 225px"></div>
-            <div id = "currentBoardTeleportAndDeny">
-                <h2>Teleport</h2>
-                <input type = "textbox" id = "teleport" name = "Teleport">
-                <br><br>
-                <button id = "submitTeleport">Submit</button>
-                <br>
-                <h2>Deny Movement</h2>
-                <input type = "textbox" id = "moveDeny" name = "moveDeny">
-                <br><br>
-                <button id = "denyMovement">Submit</button>
-            </div>
         </div>
         <div id = "pieceStats">
-            <h1 id = "pieceName">Unselected</h1>
-            <%- include('partials/GameCreatorSelectOne', {id: "attackTypes", p: "Attack Type", list: attackTypes}) %>
-            <%- include('partials/GameCreatorSelectMany',{id: "moveMods", p: "Movement Modifers", list: moveMods}) %>
-            <%- include('partials/GameCreatorSelectMany',{id: "attributeMods", p: "Attribute Modifers", list: attributeMods}) %>
-            <h2>Move Paths</h2>
-            <div id = "currentPieceMovePaths">
-            <h3>Move Paths</h3>
-            </div>
-            <div id = "currentPieceTeleports">
-            <h3>Teleports</h3>
-            </div>
-            <div id = "currentPieceDeniedSquares">
-            <h3>Denied Squares</h3>
-            </div>
+            <h1 id = "pieceName">wP</h1>
+            <input type = "checkbox" id = "mirrorPieceSelect" checked>Mirror Changes<br> to Opponent Piece 
+            <%- include('partials/GameCreatorSelectOne', {id: "attackTypes", p: "Attack Type", listName: attackTypeNames, listDescription: attackTypeDescriptions}) %>
+            <%- include('partials/GameCreatorSelectMany',{id: "moveMods", p: "Movement Modifers", listName: moveModNames, listDescription: moveModDescriptions}) %>
+            <%- include('partials/GameCreatorSelectMany',{id: "attributeMods", p: "Attribute Modifers", listName: attributeModNames, listDescription: attributeModDescriptions}) %>
         </div>
         <div id = "pathBoard" style="width: 225px">
         </div>
@@ -92,14 +72,37 @@
                 <input type = "submit" id = "downRightMoveSubmit" class = "submitAmount" value = "Add Movement" data-direction = "downRight">
             </div>
             <br>
-            <h3>Path</h3>
-            <input type = "textbox" id = "PATH" name = "PATH">
-            <button id = "updatePATHBoard">Update Path On Board</button>
+            <div id = "lethalMovePath">
+                <input type = "checkbox" id = "lethalMovePathSelect" checked>Lethal Move Path
+            </div>
+            <br> 
+            <div id = "nonLethalMovePath">
+                <input type = "checkbox" id = "nonLethalMovePathSelect" checked>Non-Lethal Move Path
+            </div>
             <br>
-            <br>
-            <button id = "removeLastAddedMovement">Undo</button>
+            <button id = "undoButton">Undo</button>
             <button id = "submitPath">Add Path To Selected Piece</button>
-            <br><br>
+            <br>
+            <h2>Add Individual Square</h2>
+            <b>Row </b>
+                <input type = "number" id = "addIndividualSquareRowAmount" name = "row" size = 1 min = "0" max = "7">
+                <b>Column</b>
+                <input type = "number" id = "addIndividualSquareColumnAmount" name = "column" size = 1 min = "0" max = "7">
+                <button id = "addIndividualSquareSubmit">Submit</button>
+                <br>
+            <h2>Absolute Teleport </h2>
+                <b>Board Coordinate</b> <input type = "textbox" id = "absoluteTeleportAmount" name = "Teleport" size = "2'">
+                <button id = "absoluteTeleportSubmit">Submit</button>
+                <br>
+            <h2>Relative Deny Movement </h2>
+                <b>Row </b>
+                <input type = "number" id = "relativeDenyMovementRowAmount" name = "row" size = 1 min = "0" max = "7">
+                <b>Column</b>
+                <input type = "number" id = "relativeDenyMovementColumnAmount" name = "row" size = 1 min = "0" max = "7">
+                <button id = "relativeDenyMovementSubmit">Submit</button>
+            <h2>Absolute Deny Movement </h2>
+                <b>Board Coordinate </b> <input type = "textbox" id = "absoluteDenyMovementAmount" name = "moveDeny" size = "2">
+            <button id = "absoluteDenyMovementSubmit">Submit</button>
             </div>
         </div>
         <div id = "boardMeta">
@@ -110,7 +113,7 @@
             <button id = "FENSubmit">Submit New FEN</button>
             <h3>Description</h3>
             <input type = "text" name = "Description" id = "Description"/>
-            <%- include('partials/GameCreatorSelectOne', {id: "winConditions", p: "Win Condition", list: winConditions}) %>
+            <%- include('partials/GameCreatorSelectOne', {id: "winConditions", p: "Win Condition", listName: winConditionNames, listDescription: winConditionDescriptions}) %>
             <br>
             <br>
             <input type = "submit" value = "Submit Game"/>

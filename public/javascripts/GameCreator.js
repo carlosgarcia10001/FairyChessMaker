@@ -1,7 +1,6 @@
 var piece = require('./Piece')
 var indexAndCoordinates = require('./IndexAndCoordinates')
 var game = require('./Game')
-var currentPieceBoard = new Array(128)
 var htmlBoardControl = require('./HtmlBoardControl')
 var abbreviationTranslator = require('./abbreviationTranslator')
 const socket = new WebSocket('ws://localhost:3000/gamecreate/')
@@ -59,7 +58,7 @@ var diagonalSpaceUpLeft = 17
 var diagonalSpaceUpRight = 15
 var diagonalSpaceDownLeft = 15
 var diagonalSpaceDownRight = 17
-game.initializeBoard(currentPieceBoard)
+
 $(document).ready(function(){
     var htmlSquares = []
     var htmlFENBoardSquares = []
@@ -70,9 +69,9 @@ $(document).ready(function(){
     var locateHtmlPathBoardSquares = {}
     var locateHtmlSquares = {}
     var pieces = piece.createPieces()
-    var currentPiece = ""
-    var currentPiecePosition = -1
-    var pathPiecePositoin = -1
+    var currentPiece = "wP"
+    var currentPiecePosition = 'd4'
+    var pathPiecePositoin = 'd4'
     $(document).on('load',function(){
         htmlSquares = htmlBoardControl.createHtmlSquares()
         for(var i = 0; i < htmlSquares.length; i++){
@@ -94,6 +93,12 @@ $(document).ready(function(){
         if(currentPiece!=""){
             var direction = $(this).attr('id').replace('MoveSubmit',"")
             var amount = $("#"+direction+"MoveAmount").val()
+            if(amount > 7){
+                amount = 7
+            }
+            else if(amount < 1){
+                amount = 1
+            }
             var pathAddMovement = {
                 pathAddMovement: {
                     direction: direction,
@@ -103,9 +108,7 @@ $(document).ready(function(){
             socket.send(JSON.stringify(pathAddMovement))
         }
     })
-    socket.addEventListener('open', function (event) {               
-        
-    });
+
     var messageResponse = {
         highlightCurrentPieceMoveList: function(message){
             htmlBoardControl.updateHighlightedMoves(htmlCurrentPieceBoardSquares, locateHtmlCurrentPieceBoardSquares, message.highlightCurrentPieceMoveList)
@@ -113,6 +116,40 @@ $(document).ready(function(){
         highlightPathMoveList: function(message){
             htmlBoardControl.updateHighlightedMoves(htmlPathBoardSquares, locateHtmlPathBoardSquares, message.highlightPathMoveList)
         },
+        highlightFENMoveList: function(message){
+            htmlBoardControl.updateHighlightedMoves(htmlFENBoardSquares, locateHtmlFENBoardSquares, message.highlightFENMoveList)
+        },
+        getAttributeMods: function(message){
+            var attributeMods = message.getAttributeMods
+            $(".attributeMods").prop("checked", false)
+            for(var i = 0; i < attributeMods.length; i++){
+                $("#"+attributeMods[i]).prop("checked", true)
+            }
+        },
+        getMoveMods: function(message){
+            var moveMods = message.getMoveMods
+            $(".moveMods").prop("checked", false)
+            for(var i = 0; i < moveMods.length; i++){
+                $("#"+moveMods[i]).prop("checked", true)
+            }
+        },
+        getAttackType: function(message){
+            var attackType = message.getAttackType
+            console.log(attackType == 'NORMAL')
+            switch(attackType){
+                case 'NORMAL': 
+                    $("#attackTypesOptions").val('Normal')
+                break;
+                case 'FRIENDLY FIRE':
+                    $("#attackTypesOptions").val('Friendly Fire')
+                break;
+                case 'PACIFIST':
+                    $("#attackTypesOptions").val('Pacifist')
+                break;
+                case 'TRAITOR':
+                    $("#attackTypesOptions").val('Traitor')
+            }
+        }
     }
 
     socket.addEventListener('message', function (message) {               
@@ -141,15 +178,127 @@ $(document).ready(function(){
     $("#FENSubmit").click(function(){
         htmlFENBoard.position($("#FEN").val())
     })
-    function sendPathUpdate(direction, amount){
-        var pathAddMovement = {
-            pathAddMovement: {
-                direction: direction,
-                amount: amount
+    $("#submitPath").click(function(){
+        var message = {
+            submitPath: "submitPath"
+        }
+        socket.send(JSON.stringify(message))
+    })
+    $("#undoButton").click(function(){
+        var message = {
+            undoPath: "undoPath"
+        }
+        socket.send(JSON.stringify(message))
+    })
+    $('input[class*="Mods"]').change(function(){
+        var id = $(this).attr('id')
+        var name = $(this).attr('class')
+        if(currentPiece!=""){
+            if(name =="moveMods"){
+                if($(this).prop('checked')){
+                    socket.send(JSON.stringify({
+                        moveModAdd: id.toUpperCase()
+                    }))
+                }
+                else{
+                    socket.send(JSON.stringify({
+                        moveModRemove: id.toUpperCase()
+                    }))
+                }
+            }
+            else if(name == "attributeMods"){
+                if($(this).prop('checked')){
+                    socket.send(JSON.stringify({
+                        attributeModAdd: id.toUpperCase()
+                    }))
+                }
+                else{
+                    socket.send(JSON.stringify({
+                        attributeModRemove: id.toUpperCase()
+                    }))
+                }
             }
         }
-        socket.send(JSON.stringify(pathAddMovement))
-    }
+    })
+    
+    $('#attackTypesOptions').change(function(){
+        var message = $(this).val().toUpperCase()
+        if(currentPiece!=""){
+            socket.send(JSON.stringify({
+                attackTypeChange: message
+            }))
+        }
+    })
+    $('#lethalMovePath').attr('title', 'Allows movement on occupied squares that the piece can attack');
+    $('#nonLethalMovePath').attr('title', 'Allows movement on unoccupied squares')
+    $('#mirrorPieceSelect').change(function(){
+        if($(this).prop('checked')){
+            socket.send(JSON.stringify({
+                mirrorPieceSelect: "selected"
+            }))
+        }
+        else{
+            socket.send(JSON.stringify({
+                mirrorPieceSelect: "unselected"
+            }))
+        }
+    })
+    $('#lethalMovePathSelect').change(function(){
+        if($(this).prop('checked')){
+            socket.send(JSON.stringify({
+                lethalMovePathSelect: "selected"
+            }))
+        }
+        else{
+            socket.send(JSON.stringify({
+                lethalMovePathSelect: "unselected"
+            }))
+        }
+    })
+    $('#nonLethalMovePathSelect').change(function(){
+        if($(this).prop('checked')){
+            socket.send(JSON.stringify({
+                nonLethalMovePathSelect: "selected"
+            }))
+        }
+        else{
+            socket.send(JSON.stringify({
+                nonLethalMovePathSelect: "unselected"
+            }))
+        }
+    })
+    $('#addIndividualSquareSubmit').click(function(){
+        var row = $('#addIndividualSquareRowAmount').val()
+        var column = $('#addIndividualSquareColumnAmount').val()
+        socket.send(JSON.stringify({
+            addIndividualSquare: {
+                row: row,
+                column: column
+            }
+        }))
+    })
+    $('#absoluteTeleportSubmit').click(function(){
+        var teleport = $('#absoluteTeleportAmount').val()
+        console.log(typeof(teleport))
+        socket.send(JSON.stringify({
+            absoluteTeleport: teleport
+        }))
+    })
+    $('#relativeDenyMovementSubmit').click(function(){
+        var row = $('#relativeDenyMovementRowAmount').val()
+        var column = $('#relativeDenyMovementColumnAmount').val()
+        socket.send(JSON.stringify({
+            relativeDenyMovement: {
+                row: row,
+                column: column
+            }
+        }))
+    })
+    $('#absoluteDenyMovementSubmit').click(function(){
+        socket.send(JSON.stringify({
+                absoluteDenyMovement: $('#absoluteDenyMovementAmount').val()
+        }))
+    })
     function currentPieceOnDragStart (source, draggedPiece, position, orientation) {
         if(draggedPiece!=currentPiece && source =='spare'){
             htmlCurrentPieceBoard.position({
@@ -158,17 +307,20 @@ $(document).ready(function(){
             htmlPathBoard.position({
                 d4: draggedPiece
             })
-            currentPieceBoard[indexAndCoordinates.coordinatesToIndex[currentPiecePosition]] = piece.createPiece()
             currentPiecePosition = 'd4'
             pathPiecePosition = 'd4'
             currentPiece = draggedPiece
-            currentPieceBoard[indexAndCoordinates.coordinatesToIndex['d4']] = pieces[currentPiece]
             $("#pieceName").text(currentPiece)
-            htmlBoardControl.updateHighlightedMovesOnGameCreator(currentPieceBoard, currentPiecePosition, htmlSquares, locateHtmlCurrentPieceBoardSquares)
             var currentPieceSend = {
-                currentPiece: draggedPiece
+                currentPiece: draggedPiece,
             }
             socket.send(JSON.stringify(currentPieceSend))
+            socket.send(JSON.stringify({
+                getMoveMods: ""
+            }))
+            socket.send(JSON.stringify({
+                getAttributeMods: ""
+            }))
             return false
         }
         if(draggedPiece==currentPiece && source == 'spare'){
@@ -177,24 +329,28 @@ $(document).ready(function(){
     }
 
     function currentPieceOnDrop(source, target, piece, newPos, oldPos, orientation){
-        currentPiecePosition = Object.keys(newPos)[0]
-        var currentPiecePosition = {
-            currentPiecePosition: {
-                from: Object.keys(oldPos)[0],
-                to: Object.keys(newPos)[0]
+        if(target != 'offboard'){
+            currentPiecePosition = Object.keys(newPos)[0]
+            var currentPiecePosition = {
+                currentPiecePosition: {
+                    from: Object.keys(oldPos)[0],
+                    to: Object.keys(newPos)[0]
+                }
             }
+            socket.send(JSON.stringify(currentPiecePosition))
         }
-        socket.send(JSON.stringify(currentPiecePosition))
     }
     function pathBoardOnDrop(source, target, piece, newPos, oldPos, orientation){
-        pathPiecePosition = Object.keys(newPos)[0]
-        var pathPiecePosition = {
-            pathPiecePosition: {
-                from: Object.keys(oldPos)[0],
-                to: Object.keys(newPos)[0]
+        if(target != 'offboard'){
+            pathPiecePosition = Object.keys(newPos)[0]
+            var pathPiecePosition = {
+                pathPiecePosition: {
+                    from: Object.keys(oldPos)[0],
+                    to: Object.keys(newPos)[0]
+                }
             }
+            socket.send(JSON.stringify(pathPiecePosition))
         }
-        socket.send(JSON.stringify(pathPiecePosition))
     }
 
     function htmlFENBoardOnDrop(source, target, piece, newPos, oldPos, orientation){
@@ -206,24 +362,68 @@ $(document).ready(function(){
         socket.send(JSON.stringify(FENSend))
     }
 
+    function htmlFENBoardOnMouseoverSquare(square, piece){
+        if(piece!=false){
+            var highlightFENMoveList = {
+                highlightFENMoveList: {
+                    square: square,
+                    piece: piece
+                }
+            }
+            socket.send(JSON.stringify(highlightFENMoveList))
+        }
+    }
+
+    function FENBoardOnMouseoutSquare(){
+        htmlBoardControl.unHighlightValidMoves(htmlFENBoardSquares)
+    }
+
+    function htmlFENBoardOnDragStart(source, draggedPiece, position, orientation){
+        htmlCurrentPieceBoard.position({
+            d4: draggedPiece
+        })
+        htmlPathBoard.position({
+            d4: draggedPiece
+        })
+        currentPiecePosition = 'd4'
+        pathPiecePosition = 'd4'
+        currentPiece = draggedPiece
+        $("#pieceName").text(currentPiece)
+        var currentPieceSend = {
+            currentPiece: draggedPiece,
+        }
+        socket.send(JSON.stringify(currentPieceSend))
+        socket.send(JSON.stringify({
+            getMoveMods: ""
+        }))
+        socket.send(JSON.stringify({
+            getAttributeMods: ""
+        }))
+    }
     var pieceTheme = "../images/chesspieces/wikipedia/{piece}.png"
     
     var FENConfig = {
         pieceTheme: pieceTheme,
         sparePieces: true,
         dropOffBoard: 'trash',
-        onDrop: htmlFENBoardOnDrop
+        onDrop: htmlFENBoardOnDrop,
+        onDragStart: htmlFENBoardOnDragStart,
+        onMouseoverSquare: htmlFENBoardOnMouseoverSquare,
+        onMouseoutSquare: FENBoardOnMouseoutSquare
     }
 
     var currentPieceConfig = {
         pieceTheme: pieceTheme, 
-        sparePieces: true,
-        onDragStart: currentPieceOnDragStart,
-        onDrop: currentPieceOnDrop
+        sparePieces: false,
+        draggable: true,
+        onDrop: currentPieceOnDrop,
+        position: {
+            d4: "wP"
+        }
     }
 
     var htmlFENBoard = Chessboard('FENBoard', FENConfig)
     var htmlCurrentPieceBoard = Chessboard('currentPieceBoard', currentPieceConfig)
-    var htmlPathBoard = Chessboard('pathBoard', {pieceTheme: pieceTheme, onDrop: pathBoardOnDrop, draggable: true})
+    var htmlPathBoard = Chessboard('pathBoard', {pieceTheme: pieceTheme, onDrop: pathBoardOnDrop, draggable: true, position: {d4: "wP"}})
     $(document).trigger('load')
 })

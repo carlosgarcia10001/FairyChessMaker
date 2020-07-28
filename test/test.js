@@ -54,7 +54,7 @@ describe('Piece', function () {
   describe('Pacifist', function () {
     it('Should return true when a friendly or enemy unit is an attack square, but it cannot attack', function () {
         let testBoard = setupTestBoard()
-        testBoard[DEFAULTPIECE1INDEX].atttype = 'pacifist'
+        testBoard[DEFAULTPIECE1INDEX].atttype = 'PACIFIST'
         boardState.printBoard(testBoard)
         console.log(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX))
         assert.isTrue(equalArray(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX),[35, 33, 50, 18]))
@@ -71,7 +71,7 @@ describe('Piece', function () {
   describe('FriendlyFire', function(){
       it('Should return true when it can target friend or foe', function(){
         let testBoard = setupTestBoard()
-        testBoard[DEFAULTPIECE1INDEX].atttype = 'friendlyfire'
+        testBoard[DEFAULTPIECE1INDEX].atttype = 'FRIENDLYFIRE'
         boardState.printBoard(testBoard)
         console.log(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX))
         assert.isTrue(equalArray(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX), [35, 33, 50, 18, 36, 32, 66,  2]))
@@ -80,7 +80,7 @@ describe('Piece', function () {
   describe('Traitor', function(){
       it('Should return true when only enemies and empty squares can be moved to, function()', function(){
         let testBoard = setupTestBoard()
-        testBoard[DEFAULTPIECE1INDEX].atttype = 'traitor'
+        testBoard[DEFAULTPIECE1INDEX].atttype = 'TRAITOR'
         boardState.printBoard(testBoard)
         console.log(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX))
         assert.isTrue(equalArray(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX), [35, 33, 50, 18, 2]))
@@ -118,7 +118,7 @@ describe('Mods', function(){
     describe('Ethereal Normal', function(){
         it("Should return true when the piece can move through allies", function(){
             let testBoard = setupTestBoard()
-            testBoard[DEFAULTPIECE1INDEX].movmods.push('ethereal')
+            testBoard[DEFAULTPIECE1INDEX].movmods.push('ETHEREAL')
             console.log(testBoard[DEFAULTPIECE1INDEX].movmods)
             testBoard[DEFAULTPIECE2INDEX].color='w'
             testBoard[DEFAULTPIECE2INDEX].id = 'b'
@@ -130,8 +130,8 @@ describe('Mods', function(){
     describe('Ethereal Traitor', function(){
         it('Should return true when the piece can move through allies and kill them', function(){
             let testBoard = setupTestBoard()
-            testBoard[DEFAULTPIECE1INDEX].movmods.push('ethereal')
-            testBoard[DEFAULTPIECE1INDEX].atttype = 'traitor'
+            testBoard[DEFAULTPIECE1INDEX].movmods.push('ETHEREAL')
+            testBoard[DEFAULTPIECE1INDEX].atttype = 'TRAITOR'
             console.log(testBoard[DEFAULTPIECE1INDEX].movmods)
             testBoard[DEFAULTPIECE2INDEX].color='w'
             testBoard[38] = piece.createPiece('z','w')
@@ -143,7 +143,7 @@ describe('Mods', function(){
     describe('Beacon',function(){
         it('Should return true if ally pieces can move near it', function(){
             let testBoard = setupTestBoard()
-            game.placePieceOnBoard(testBoard,piece.createPiece('l','w',1,1,piece.createMov(),'pacifist',['beacon']),102)
+            game.placePieceOnBoard(testBoard,piece.createPiece('l','w',1,1,piece.createMov(),'PACIFIST',['BEACON']),102)
             game.placePieceOnBoard(testBoard,piece.createPiece('E','b'),117)
             game.placePieceOnBoard(testBoard,piece.createPiece('m','w'),118)
             boardState.printBoard(testBoard)
@@ -154,7 +154,7 @@ describe('Mods', function(){
     describe('Teleport',function(){
         it("Should return true if piece1 can teleport", function(){
             let testBoard = setupTestBoard()
-            testBoard[DEFAULTPIECE1INDEX].movmods.push('teleport102')
+            testBoard[DEFAULTPIECE1INDEX].movmods.push('TELEPORT102')
             boardState.printBoard(testBoard)
             console.log(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX))
             assert.isTrue(equalArray(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX), [35, 33, 50,  18, 36, 32, 66, 102]))
@@ -163,7 +163,7 @@ describe('Mods', function(){
     describe('Teleport Kill',function(){
         it('Should return true if piece1 and kill with teleport', function(){
             let testBoard = setupTestBoard()
-            testBoard[DEFAULTPIECE1INDEX].movmods.push('teleport102')
+            testBoard[DEFAULTPIECE1INDEX].movmods.push('TELEPORT102')
             game.placePieceOnBoard(testBoard,piece.createPiece('L','b'),102)
             boardState.printBoard(testBoard)
             console.log(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX))
@@ -174,7 +174,7 @@ describe('Mods', function(){
     describe('Teleport Friendly', function(){
         it("Should return true if piece1 cannot teleport", function(){
             let testBoard = setupTestBoard()
-            testBoard[DEFAULTPIECE1INDEX].movmods.push('teleport102')
+            testBoard[DEFAULTPIECE1INDEX].movmods.push('TELEPORT102')
             game.placePieceOnBoard(testBoard,piece.createPiece('l','w'),102)
             boardState.printBoard(testBoard)
             console.log(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX))
@@ -184,7 +184,7 @@ describe('Mods', function(){
     describe('Remove Relative', function(){
         it("Should not allow piece1 to move to square 35", function(){
             let testBoard = setupTestBoard()
-            testBoard[DEFAULTPIECE1INDEX].movmods.push('removeRelative1')
+            testBoard[DEFAULTPIECE1INDEX].movmods.push('REMOVERELATIVE1')
             game.placePieceOnBoard(testBoard,piece.createPiece('l','w'),102)
             boardState.printBoard(testBoard)
             console.log(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX))
@@ -194,7 +194,7 @@ describe('Mods', function(){
     describe('Remove Absolute', function(){
         it("Should now allow piece1 to move to square 35", function(){
             let testBoard = setupTestBoard()
-            testBoard[DEFAULTPIECE1INDEX].movmods.push('removeAbsolute35')
+            testBoard[DEFAULTPIECE1INDEX].movmods.push('REMOVEABSOLUTE35')
             game.placePieceOnBoard(testBoard,piece.createPiece('l','w'),102)
             boardState.printBoard(testBoard)
             console.log(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX))
@@ -206,7 +206,7 @@ describe('Mods', function(){
             let testBoard = setupTestBoard()
             testBoard[DEFAULTPIECE2INDEX].dmgmov = [-1]
             testBoard[DEFAULTPIECE2INDEX].dmgdur = [8]
-            game.placePieceOnBoard(testBoard,piece.createPiece('a','w',1,1,piece.createMov([[1,1]],[[1]],[[1,1]],[[1]]),'normal',['kingly']),DEFAULTPIECE1INDEX)
+            game.placePieceOnBoard(testBoard,piece.createPiece('a','w',1,1,piece.createMov([[1,1]],[[1]],[[1,1]],[[1]]),'NORMAL',['KINGLY']),DEFAULTPIECE1INDEX)
             boardState.printBoard(testBoard)
             console.log(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX))
             assert.isTrue(equalArray(move.pieceMoveList(testBoard,DEFAULTPIECE1INDEX), []))
@@ -215,7 +215,7 @@ describe('Mods', function(){
     describe('Check', function(){
         it('Should have p in Bs moveList, and have check return true', function(){
         let testBoard = setupTestBoard()
-        game.placePieceOnBoard(testBoard, piece.createPiece('p','w',1,1,piece.createMov(),'pacifist',['kingly']),DEFAULTPIECE1INDEX)
+        game.placePieceOnBoard(testBoard, piece.createPiece('p','w',1,1,piece.createMov(),'PACIFIST',['KINGLY']),DEFAULTPIECE1INDEX)
         testBoard[DEFAULTPIECE2INDEX].mov.paths=[[-1,-8]]
         testBoard[DEFAULTPIECE2INDEX].mov.space=[[1]]
         testBoard[DEFAULTPIECE2INDEX].mov.attPaths =[[-1,-8]]

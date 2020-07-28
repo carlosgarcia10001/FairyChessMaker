@@ -8,10 +8,14 @@ var publicOptionsList = require('../public/javascripts/publicOptionsList')
 router.get('/', function (req, res){
     res.render("GameCreator", {
         user: req.session.user,
-        moveMods: publicOptionsList.publicMoveMods,
-        attributeMods: publicOptionsList.publicAttributeMods,
-        winConditions: publicOptionsList.publicWinConditions,
-        attackTypes: publicOptionsList.publicAttackTypes
+        moveModNames: publicOptionsList.publicMoveModNames,
+        attributeModNames: publicOptionsList.publicAttributeModNames,
+        winConditionNames: publicOptionsList.publicWinConditionNames,
+        attackTypeNames: publicOptionsList.publicAttackTypeNames,
+        moveModDescriptions: publicOptionsList.publicMoveModDescriptions,
+        attributeModDescriptions: publicOptionsList.publicAttributeModDescriptions,
+        winConditionDescriptions: publicOptionsList.publicWinConditionDescriptions,
+        attackTypeDescriptions: publicOptionsList.publicAttackTypeDescriptions,
     })
 })
 
