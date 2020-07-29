@@ -1,77 +1,4 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-var boardState = require('./BoardState')
-var helper = require('./AttributeModsHelper')
-var mods ={
-    BEACON: {
-        name: "Beacon",
-        description: "Ally pieces can teleport to within a one square radius of this piece, no matter their location.",
-        action: function(board, color){
-                    var friendlySquares = boardState.pieceIndex(board, color)
-                    for(var i = 0; i < friendlySquares.length; i++){
-                        if(!boardState.pieceHasAttributeMod(board, friendlySquares[i],'BEACON')){
-                            helper.addMoveMod(board, friendlySquares[i], 'TELEPORTTOBEACON')
-                        }
-                    }
-        },
-        removal: function(board, color){
-                    var friendlySquares = boardState.pieceIndex(board,color)
-                    for(var i = 0; i < friendlySquares.length; i++){
-                        if(board[friendlySquares[i]].movmods.indexOf('TELEPORTTOBEACON')!=-1){
-                            board[friendlySquares[i]].movmods.splice(board[friendlySquares[i]].movmods.indexOf('TELEPORTTOBEACON'),1)
-                        }
-                    }
-        }
-    },
-    KINGLY: {
-        name: "Kingly",
-        description: "This piece must be protected by ally pieces at all costs. Can only be applied to one piece per game.",
-        action: function(board, color){
-                    var friendlySquares = boardState.pieceIndex(board,color)
-                    for(var i = 0; i < friendlySquares.length; i++){
-                        if(board[friendlySquares[i]].movmods.indexOf('PROTECTKINGLY')==-1){
-                            helper.addMoveMod(board, friendlySquares[i], 'PROTECTKINGLY')
-                        }
-                    }
-        },
-        removal: function(board, color){
-                    var friendlySquares = boardState.pieceIndex(board,color)
-                    for(var i = 0; i < friendlySquares.length; i++){
-                        if(board[friendlySquares[i]].movmods.indexOf('PROTECTKINGLY')!=-1){
-                            board[friendlySquares[i]].movmods.splice(board[friendlySquares[i]].movmods.indexOf('PROTECTKINGLY'),1)
-                        }
-                    }
-        }
-    }
-}
-
-function parseMods(parsedBoard, parsedSquare, color){
-    for(var i = 0; i < parsedBoard[parsedSquare].attrmods.length;i++){
-        var mod = parsedBoard[parsedSquare].attrmods[i].toUpperCase()
-        mods[mod].action(parsedBoard, color)
-    }
-}
-
-function getAttributeModNames(attributeModList){
-    attributeNameList = []
-    for(var i = 0; i < attributeModList.length; i++){
-        var modName = mods[attributeModList[i]].name
-        if(modName!= "NP"){
-            attributeNameList.push(modName)
-        }
-    }
-    return attributeNameList
-}
-
-exports.parseMods = parseMods
-exports.mods = mods
-exports.getAttributeModNames = getAttributeModNames
-},{"./AttributeModsHelper":2,"./BoardState":3}],2:[function(require,module,exports){
-function addMoveMod(board, square, mod){
-    board[square].movmods.push(mod)
-}
-
-exports.addMoveMod = addMoveMod
-},{}],3:[function(require,module,exports){
 var indexToCoordinates = {}
 var coordinatesToIndex = {}
 var indexToValidIndex = {}
@@ -139,174 +66,10 @@ if(typeof exports != 'undefined'){
     exports.enemySquare = enemySquare
     exports.pieceHasAttributeMod = pieceHasAttributeMod
 }
-},{}],4:[function(require,module,exports){
-var boardState  = require('./BoardState')
-var piece = require('./Piece')
-var move = require('./Move')
-var attributeMods = require('./AttributeMods')
-var indexAndCoordinates = require('./IndexAndCoordinates')
-var board = new Array(128)
-var turn = 'w'
-var boardHistory = []
+},{}],2:[function(require,module,exports){
 
-function initializeBoard(parsedBoard){
-    for(var i = 0; i < parsedBoard.length; i++){
-        var createdPiece = piece.createPiece()
-         parsedBoard[i] = createdPiece
-     }
-}
-
-function placePieceOnBoard(parsedBoard, parsedPiece, parsedSquare){
-        parsedBoard[parsedSquare] = parsedPiece
-        activateAttributeMods(parsedBoard)
-}
-
-function activateAttributeMods(parsedBoard){
-    for(var i = 0; i < parsedBoard.length;i++){
-        if(boardState.validSquare(i) && parsedBoard[i].attrmods && parsedBoard[i].attrmods.length>0){
-            attributeMods.parseMods(parsedBoard, i, parsedBoard[i].color)
-        }
-    }
-}
-
-function createFEN(parsedBoard){
-    var count = 0;
-    var FEN = ""
-    for(var i = 0; i < 120; i++){
-        if(!boardState.validSquare(i)){
-            i+=8
-            if(count>0){
-                FEN+=count
-            }
-            if(i<113){
-                FEN+='/'
-            }
-            count = 0
-        }
-        if(boardState.validSquare(i) && boardState.emptySquare(parsedBoard, i)){
-            count++
-        }
-        if(boardState.validSquare(i) && boardState.occupiedSquare(parsedBoard, i)){
-            if(count>0){
-                FEN+=count
-            }
-            count = 0
-            FEN+=parsedBoard[i].id
-        }
-    }
-    return FEN
-}
-
-function parseFEN(parsedBoard, parsedFEN, parsedPieces){
-    var FENcopy = parsedFEN.substring(0)
-    let letter = 97
-    let number = 8
-    var keys = Object.keys(parsedPieces)
-    while(FENcopy != ''){
-        if(FENcopy.startsWith('/')){
-            letter = 97
-            number--
-        }
-        else if(!isNaN(Number(FENcopy.charAt(0)))){
-            var count = Number(FENcopy.charAt(0))
-            for(var i = 0; i < count; i++){
-                parsedBoard[indexAndCoordinates.coordinatesToIndex[String.fromCharCode(letter)+number]] = piece.createPiece()
-                letter++
-            }
-        }
-        else{
-            for(var i = 0; i < keys.length; i++){
-                if(parsedPieces[keys[i]].id == FENcopy.charAt(0)){
-                    parsedBoard[indexAndCoordinates.coordinatesToIndex[String.fromCharCode(letter)+number]] = parsedPieces[keys[i]]
-                }
-            }
-            letter++
-        }
-        FENcopy = FENcopy.substring(1)
-    }
-}
-
-var game = {
-    board: new Array(128),
-    turn: 'w',
-    pieces: piece.createPieces(),
-    FEN: '8/8/8/8/8/8/8/8',
-    winCondition: "checkMate",
-}
-
-parseFEN(game.board,game.FEN,game.pieces)
-
-exports.game = game
-exports.board = board
-exports.turn = turn
-exports.initializeBoard=initializeBoard
-exports.placePieceOnBoard=placePieceOnBoard
-exports.boardHistory = boardHistory
-exports.createFEN = createFEN
-exports.parseFEN = parseFEN
-exports.activateAttributeMods = activateAttributeMods
-
-},{"./AttributeMods":1,"./BoardState":3,"./IndexAndCoordinates":7,"./Move":8,"./Piece":9}],5:[function(require,module,exports){
-var piece = require('./Piece')
-var indexAndCoordinates = require('./IndexAndCoordinates')
-var game = require('./Game')
 var htmlBoardControl = require('./HtmlBoardControl')
-var abbreviationTranslator = require('./abbreviationTranslator')
 const socket = new WebSocket('ws://localhost:3000/gamecreate/')
-var horizontalPathLeft = {
- path: [-1,-7],
- space: [1]
-}
-var horizontalPathRight = {
- path: [1,7],
- space: [1]
-}
-var verticalPathUp = {
- path: [-16,-112],
- space: [16]
-}
-var verticalPathDown = {
-    path: [16,112],
-    space: [16]
-}
-var diagonalPathUpLeft = {
-    path: [-17,-119],
-    space: [17]
-}
-var diagonalPathUpRight = {
-    path: [-15, -117],
-    space: [15]
-}
-var diagonalPathDownLeft = {
-    path: [15, 117],
-    space: [15]
-}
-var diagonalPathDownRight = {
-    path: [17,119],
-    space: [17] 
-}
-
-var right = [1,1]
-var left = [-1,-1]
-var down = [16,16]
-var downRight = [17,17]
-var downLeft = [15,15]
-var up = [-16,-16]
-var upLeft = [-17,-17]
-var upRight = [-15,-15]
-var knightUpLeft1 = [-33,-33]
-var knightUpLeft2 = [-18,-18]
-var knightUpRight1 = [-31,-31]
-var knightUpRight2 = [-14,-14]
-var knightDownLeft1 = [14,14]
-var knightDownLeft2 = [31,31]
-var knightDownRight1 = [18,18]
-var knightDownRight2 = [33,33]
-var verticalSpace = 16
-var diagonalSpaceUpLeft = 17
-var diagonalSpaceUpRight = 15
-var diagonalSpaceDownLeft = 15
-var diagonalSpaceDownRight = 17
 
 $(document).ready(function(){
     var htmlSquares = []
@@ -316,11 +79,9 @@ $(document).ready(function(){
     var locateHtmlFENBoardSquares = {}
     var locateHtmlCurrentPieceBoardSquares = {}
     var locateHtmlPathBoardSquares = {}
-    var locateHtmlSquares = {}
-    var pieces = piece.createPieces()
     var currentPiece = "wP"
     var currentPiecePosition = 'd4'
-    var pathPiecePositoin = 'd4'
+    var pathPiecePosition = 'd4'
     $(document).on('load',function(){
         htmlSquares = htmlBoardControl.createHtmlSquares()
         for(var i = 0; i < htmlSquares.length; i++){
@@ -360,13 +121,14 @@ $(document).ready(function(){
 
     var messageResponse = {
         highlightCurrentPieceMoveList: function(message){
-            htmlBoardControl.updateHighlightedMoves(htmlCurrentPieceBoardSquares, locateHtmlCurrentPieceBoardSquares, message.highlightCurrentPieceMoveList)
+            console.log(message.highlightCurrentPieceIgnoreList)
+            htmlBoardControl.updateHighlightedMoves(htmlCurrentPieceBoardSquares, locateHtmlCurrentPieceBoardSquares, message.highlightCurrentPieceMoveList, message.highlightCurrentPieceIgnoreList)
         },
         highlightPathMoveList: function(message){
             htmlBoardControl.updateHighlightedMoves(htmlPathBoardSquares, locateHtmlPathBoardSquares, message.highlightPathMoveList)
         },
         highlightFENMoveList: function(message){
-            htmlBoardControl.updateHighlightedMoves(htmlFENBoardSquares, locateHtmlFENBoardSquares, message.highlightFENMoveList)
+            htmlBoardControl.updateHighlightedMoves(htmlFENBoardSquares, locateHtmlFENBoardSquares, message.highlightFENMoveList, message.highlightFENIgnoreList)
         },
         getAttributeMods: function(message){
             var attributeMods = message.getAttributeMods
@@ -398,6 +160,12 @@ $(document).ready(function(){
                 case 'TRAITOR':
                     $("#attackTypesOptions").val('Traitor')
             }
+        },
+        gameSubmitSuccess: function(message){
+            window.location.assign(message.gameSubmitSuccess)
+        },
+        gameSubmitFail: function(message){
+            $("#gameSubmitFailText").text(message.gameSubmitFail)
         }
     }
 
@@ -407,25 +175,26 @@ $(document).ready(function(){
                 data = JSON.parse(message.data)
                 var keys = Object.keys(data)
                 for(var i = 0; i < keys.length; i++){
-                    messageResponse[keys[i]](data)
+                    if(messageResponse[keys[i]]){
+                        messageResponse[keys[i]](data)
+                    }
                 }
             }
     });
-    $("input[value='Submit']").click(function(){
-        var name = $("#name").val()
-        var description = $("#desciption").val()
-        $.post("/gamecreate",{
-            name: name,
-            author: author,
-            description: description,
-            FEN: htmlFENBoard.position(),
-            pieces: pieces
-        }).done(function(data){
-            window.location.assign(data)
-        })
+    $("#gameSubmit").click(function(){
+        socket.send(JSON.stringify({
+            gameSubmit: {
+                name: $("#nameTextBox").val(),
+                description: $("#descriptionTextBox").val(),
+                winCondition: $("#winConditionsOptions").val(),
+            }
+        }))
     })
     $("#FENSubmit").click(function(){
         htmlFENBoard.position($("#FEN").val())
+        socket.send(JSON.stringify({
+            FEN: htmlFENBoard.position('FEN')
+        }))
     })
     $("#submitPath").click(function(){
         var message = {
@@ -433,9 +202,9 @@ $(document).ready(function(){
         }
         socket.send(JSON.stringify(message))
     })
-    $("#undoButton").click(function(){
+    $("#submitEraseUnsubmittedPath").click(function(){
         var message = {
-            undoPath: "undoPath"
+            eraseUnsubmittedPath: "removePath"
         }
         socket.send(JSON.stringify(message))
     })
@@ -548,35 +317,17 @@ $(document).ready(function(){
                 absoluteDenyMovement: $('#absoluteDenyMovementAmount').val()
         }))
     })
-    function currentPieceOnDragStart (source, draggedPiece, position, orientation) {
-        if(draggedPiece!=currentPiece && source =='spare'){
-            htmlCurrentPieceBoard.position({
-                d4: draggedPiece
-            })
-            htmlPathBoard.position({
-                d4: draggedPiece
-            })
-            currentPiecePosition = 'd4'
-            pathPiecePosition = 'd4'
-            currentPiece = draggedPiece
-            $("#pieceName").text(currentPiece)
-            var currentPieceSend = {
-                currentPiece: draggedPiece,
-            }
-            socket.send(JSON.stringify(currentPieceSend))
-            socket.send(JSON.stringify({
-                getMoveMods: ""
-            }))
-            socket.send(JSON.stringify({
-                getAttributeMods: ""
-            }))
-            return false
-        }
-        if(draggedPiece==currentPiece && source == 'spare'){
-            return false
-        }
-    }
-
+    $('#mirrorPathSelect').change(function(){
+        socket.send(JSON.stringify({
+            mirrorPathSelect: $('#mirrorPathSelect').prop('checked')
+        }))
+        console.log($('#mirrorPathSelect').prop('checked'))
+    })
+    $('#removeCurrentPiecePathsButton').click(function(){
+        socket.send(JSON.stringify({
+            removeCurrentPieceMovement: "removeCurrentPieceMovement"
+        }))
+    })
     function currentPieceOnDrop(source, target, piece, newPos, oldPos, orientation){
         if(target != 'offboard'){
             currentPiecePosition = Object.keys(newPos)[0]
@@ -676,7 +427,7 @@ $(document).ready(function(){
     var htmlPathBoard = Chessboard('pathBoard', {pieceTheme: pieceTheme, onDrop: pathBoardOnDrop, draggable: true, position: {d4: "wP"}})
     $(document).trigger('load')
 })
-},{"./Game":4,"./HtmlBoardControl":6,"./IndexAndCoordinates":7,"./Piece":9,"./abbreviationTranslator":11}],6:[function(require,module,exports){
+},{"./HtmlBoardControl":3}],3:[function(require,module,exports){
 var move = require('./Move')
 var indexAndCoordinates = require('./IndexAndCoordinates')
 var highlightMove = '#a9a9a9'
@@ -694,12 +445,19 @@ function createLocateHtmlSquares(htmlSquares){
     return locateSquares
 }
 
-function highlightValidMoves(locateHtmlSquares, moveList){
+function highlightValidMoves(locateHtmlSquares, moveList, ignoreList = []){
     var moveset = moveList
+    console.log(ignoreList)
     for(var i = 0; i < moveset.length; i++){
         if(!($(locateHtmlSquares[moveset[i]]).hasClass('moveset'))){
             $(locateHtmlSquares[moveset[i]]).addClass("moveset")
             $(locateHtmlSquares[moveset[i]]).css('background', highlightMove)
+        }
+    }
+    for(var i = 0; i < ignoreList.length; i++){
+        if(!($(locateHtmlSquares[ignoreList[i]]).hasClass('moveset'))){
+            $(locateHtmlSquares[ignoreList[i]]).addClass("moveset")
+            $(locateHtmlSquares[ignoreList[i]]).css('background', 'red')
         }
     }
 }
@@ -713,9 +471,9 @@ function unHighlightValidMoves(htmlSquares){
     }
 }
 
-function updateHighlightedMoves(htmlSquares, locateHtmlSquares, moveList){
+function updateHighlightedMoves(htmlSquares, locateHtmlSquares, moveList, ignoreList){
     unHighlightValidMoves(htmlSquares)
-    highlightValidMoves(locateHtmlSquares, moveList)
+    highlightValidMoves(locateHtmlSquares, moveList, ignoreList)
 }
 
 function updateHighlightedMovesOnGameCreator(parsedHtmlBoard, parsedIndex, htmlSquares, locateHtmlSquares){
@@ -763,7 +521,7 @@ exports.unHighlightValidMoves = unHighlightValidMoves
 exports.updateHighlightedMovesOnGameCreator = updateHighlightedMovesOnGameCreator
 exports.highlightValidMovesOnGameCreator = highlightValidMovesOnGameCreator
 exports.highlightSquare = highlightSquare
-},{"./IndexAndCoordinates":7,"./Move":8}],7:[function(require,module,exports){
+},{"./IndexAndCoordinates":4,"./Move":5}],4:[function(require,module,exports){
 var indexToCoordinates = {}
 var coordinatesToIndex = {}
 
@@ -788,7 +546,7 @@ if(typeof exports != 'undefined'){
     exports.indexToCoordinates=indexToCoordinates
     exports.coordinatesToIndex=coordinatesToIndex
 }
-},{}],8:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 var boardState = require('./BoardState')
 var pieceAttack = require('./PieceAttack')
 var piece = require('./Piece')
@@ -984,6 +742,8 @@ function addTeleportMods(){
                 }
             }
         }
+    }
+    for(let i = 0; i < 120; i++){
         mods['REMOVERELATIVE'+i] = {
             name: NP,
             description: NP, 
@@ -994,7 +754,8 @@ function addTeleportMods(){
                     }
                 }
             }
-        }
+    }
+
     for(let i = -120; i < 0; i++){
         mods['REMOVERELATIVE'+i] = {
             name: NP,
@@ -1010,6 +771,15 @@ function addTeleportMods(){
 }
 addTeleportMods()
 
+function getIgnoreList(mods){
+    var ignoreList = []
+    for(var i = 0; i < mods.length; i++){
+        if(mods[i].substring(0,14)=='REMOVEABSOLUTE'){
+            ignoreList.push(indexAndCoordinates.indexToCoordinates[mods[i].substring(14)])
+        }
+    }
+    return ignoreList
+}
 function validBeaconTeleport(board, square, beaconIndex, offset){
     var parsedSquare = beaconIndex+offset
     return boardState.validSquare(parsedSquare) && (pieceAttack.attackTypes[board[square].atttype].action(board, square, parsedSquare) || boardState.emptySquare(board, parsedSquare))
@@ -1168,7 +938,8 @@ exports.moveListCoordinates = moveListCoordinates
 exports.checkMate = checkMate
 exports.mods = mods
 exports.getMoveModNames = getMoveModNames
-},{"./BoardState":3,"./IndexAndCoordinates":7,"./Piece":9,"./PieceAttack":10}],9:[function(require,module,exports){
+exports.getIgnoreList = getIgnoreList
+},{"./BoardState":1,"./IndexAndCoordinates":4,"./Piece":6,"./PieceAttack":7}],6:[function(require,module,exports){
 function createPiece(id= " ", color = "", hp = 1, dmg = 1, mov = {
     paths: [],
     space: [],
@@ -1237,7 +1008,7 @@ exports.createPieces = createPieces
 exports.createMov = createMov
 exports.addPath = addPath
 exports.addAttPath = addAttPath
-},{}],10:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var boardState = require('./BoardState')
 var attackTypes = { 
     NORMAL: {
@@ -1276,21 +1047,4 @@ function validAttack(board, square, target){
 
 exports.validAttack = validAttack
 exports.attackTypes = attackTypes
-},{"./BoardState":3}],11:[function(require,module,exports){
-var translate = {
-    wP: "White Pawn",
-    wK: "White King",
-    wQ: "White Queen",
-    wR: "White Rook",
-    wN: "White Knight",
-    wB: "White Bishop",
-    bP: "Black Pawn",
-    bK: "Black King",
-    bQ: "Black Queen",
-    bR: "Black Rook",
-    bN: "Black Knight",
-    bB: "Black Bishop"
-}
-
-exports.translate = translate
-},{}]},{},[5]);
+},{"./BoardState":1}]},{},[2]);

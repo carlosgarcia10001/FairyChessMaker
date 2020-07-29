@@ -287,6 +287,8 @@ function addTeleportMods(){
                 }
             }
         }
+    }
+    for(let i = 0; i < 120; i++){
         mods['REMOVERELATIVE'+i] = {
             name: NP,
             description: NP, 
@@ -297,7 +299,8 @@ function addTeleportMods(){
                     }
                 }
             }
-        }
+    }
+
     for(let i = -120; i < 0; i++){
         mods['REMOVERELATIVE'+i] = {
             name: NP,
@@ -313,6 +316,15 @@ function addTeleportMods(){
 }
 addTeleportMods()
 
+function getIgnoreList(mods){
+    var ignoreList = []
+    for(var i = 0; i < mods.length; i++){
+        if(mods[i].substring(0,14)=='REMOVEABSOLUTE'){
+            ignoreList.push(indexAndCoordinates.indexToCoordinates[mods[i].substring(14)])
+        }
+    }
+    return ignoreList
+}
 function validBeaconTeleport(board, square, beaconIndex, offset){
     var parsedSquare = beaconIndex+offset
     return boardState.validSquare(parsedSquare) && (pieceAttack.attackTypes[board[square].atttype].action(board, square, parsedSquare) || boardState.emptySquare(board, parsedSquare))
@@ -471,6 +483,7 @@ exports.moveListCoordinates = moveListCoordinates
 exports.checkMate = checkMate
 exports.mods = mods
 exports.getMoveModNames = getMoveModNames
+exports.getIgnoreList = getIgnoreList
 },{"./BoardState":1,"./IndexAndCoordinates":2,"./Piece":4,"./PieceAttack":5}],4:[function(require,module,exports){
 function createPiece(id= " ", color = "", hp = 1, dmg = 1, mov = {
     paths: [],
@@ -744,12 +757,19 @@ function createLocateHtmlSquares(htmlSquares){
     return locateSquares
 }
 
-function highlightValidMoves(locateHtmlSquares, moveList){
+function highlightValidMoves(locateHtmlSquares, moveList, ignoreList = []){
     var moveset = moveList
+    console.log(ignoreList)
     for(var i = 0; i < moveset.length; i++){
         if(!($(locateHtmlSquares[moveset[i]]).hasClass('moveset'))){
             $(locateHtmlSquares[moveset[i]]).addClass("moveset")
             $(locateHtmlSquares[moveset[i]]).css('background', highlightMove)
+        }
+    }
+    for(var i = 0; i < ignoreList.length; i++){
+        if(!($(locateHtmlSquares[ignoreList[i]]).hasClass('moveset'))){
+            $(locateHtmlSquares[ignoreList[i]]).addClass("moveset")
+            $(locateHtmlSquares[ignoreList[i]]).css('background', 'red')
         }
     }
 }
@@ -763,9 +783,9 @@ function unHighlightValidMoves(htmlSquares){
     }
 }
 
-function updateHighlightedMoves(htmlSquares, locateHtmlSquares, moveList){
+function updateHighlightedMoves(htmlSquares, locateHtmlSquares, moveList, ignoreList){
     unHighlightValidMoves(htmlSquares)
-    highlightValidMoves(locateHtmlSquares, moveList)
+    highlightValidMoves(locateHtmlSquares, moveList, ignoreList)
 }
 
 function updateHighlightedMovesOnGameCreator(parsedHtmlBoard, parsedIndex, htmlSquares, locateHtmlSquares){

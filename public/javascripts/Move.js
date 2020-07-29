@@ -193,6 +193,8 @@ function addTeleportMods(){
                 }
             }
         }
+    }
+    for(let i = 0; i < 120; i++){
         mods['REMOVERELATIVE'+i] = {
             name: NP,
             description: NP, 
@@ -203,7 +205,8 @@ function addTeleportMods(){
                     }
                 }
             }
-        }
+    }
+
     for(let i = -120; i < 0; i++){
         mods['REMOVERELATIVE'+i] = {
             name: NP,
@@ -219,6 +222,15 @@ function addTeleportMods(){
 }
 addTeleportMods()
 
+function getIgnoreList(mods){
+    var ignoreList = []
+    for(var i = 0; i < mods.length; i++){
+        if(mods[i].substring(0,14)=='REMOVEABSOLUTE'){
+            ignoreList.push(indexAndCoordinates.indexToCoordinates[mods[i].substring(14)])
+        }
+    }
+    return ignoreList
+}
 function validBeaconTeleport(board, square, beaconIndex, offset){
     var parsedSquare = beaconIndex+offset
     return boardState.validSquare(parsedSquare) && (pieceAttack.attackTypes[board[square].atttype].action(board, square, parsedSquare) || boardState.emptySquare(board, parsedSquare))
@@ -377,3 +389,4 @@ exports.moveListCoordinates = moveListCoordinates
 exports.checkMate = checkMate
 exports.mods = mods
 exports.getMoveModNames = getMoveModNames
+exports.getIgnoreList = getIgnoreList

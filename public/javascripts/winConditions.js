@@ -1,7 +1,7 @@
 var move = require('./Move')
 var boardState = require('./BoardState')
 var winCondition = { 
-    checkMate: {
+    CHECKMATE: {
         name: "Checkmate",
         description: "A piece with the Kingly mod must be put in a situation where it will be captured no matter what.",
         action: function(board, turn){
@@ -19,7 +19,7 @@ var winCondition = {
             return false
         }
     },
-    elimination: {
+    ELIMINATION: {
         name: "Elimination",
         description: "Eliminate all opposing pieces",
         action: function(board, turn){

@@ -12,6 +12,7 @@ var indexAndCoordinates = require('./public/javascripts/IndexAndCoordinates')
 var boardState = require('./public/javascripts/BoardState')
 var attributeMods = require('./public/javascripts/AttributeMods')
 var mirrorPieceSelect = true;
+var mirrorPath = true;
 var mirrorPiece = "bP"
 var attackPath = true;
 var movePath = true;
@@ -107,7 +108,8 @@ function createPlaySocket(sessionParser){
                             playGame.turn = 'w'
                         }
                         FEN = gameControl.createFEN(playGame.board)
-                        var winnerParse = win.winCondition[playGame.winCondition].action(playGame.board, playGame.turn)
+                        console.log(playGame.winCondition)
+                        var winnerParse = win.winCondition[playGame.winCondition.toUpperCase()].action(playGame.board, playGame.turn)
                         if(winnerParse!=false){
                             winner = winnerParse
                         }
@@ -157,10 +159,15 @@ function createGameCreateSocket(sessionParser){
         path: [],
         space: []
     }
+    var mirrorParsingPath = {
+        path: [],
+        space: []
+    }
     var messageResponse = {
         FEN: function(message, ws, req){
             gameControl.parseFEN(FENGame.board,message.FEN,FENGame.pieces)
             gameControl.activateAttributeMods(FENGame.board)
+            FEN = message.FEN
         },
         currentPiece: function(message, ws, req){
             currentPiece = message.currentPiece
@@ -178,6 +185,7 @@ function createGameCreateSocket(sessionParser){
             var moveList = move.pieceMoveList(currentPieceBoard, 'd4')
             var highlightCurrentPieceMoveList = {
                 highlightCurrentPieceMoveList: move.moveListCoordinates(moveList),
+                highlightCurrentPieceIgnoreList: move.getIgnoreList(FENGame.pieces[currentPiece].movmods),
                 getMoveMods: move.getMoveModNames(FENGame.pieces[currentPiece].movmods),
                 getAttributeMods: attributeMods.getAttributeModNames(FENGame.pieces[currentPiece].attrmods),
                 getAttackType: FENGame.pieces[currentPiece].atttype
@@ -192,6 +200,7 @@ function createGameCreateSocket(sessionParser){
             currentPiecePosition = message.currentPiecePosition.to
             var highlightCurrentPieceMoveList = {
                 highlightCurrentPieceMoveList: move.moveListCoordinates(move.pieceMoveList(currentPieceBoard, to)),
+                highlightCurrentPieceIgnoreList: move.getIgnoreList(FENGame.pieces[currentPiece].movmods)
             }
             ws.send(JSON.stringify(highlightCurrentPieceMoveList))
         },
@@ -209,9 +218,20 @@ function createGameCreateSocket(sessionParser){
         pathAddMovement: function(message, ws, req){
             var direction = message.pathAddMovement.direction
             var amount = message.pathAddMovement.amount
-            pathAdd[direction.toUpperCase()](amount)
+            pathAdd[direction.toUpperCase()](parsingPath, amount)
+            if(mirrorPath){
+                pathAdd[addPathMirror[direction.toUpperCase()]](mirrorParsingPath, amount)
+            }
             pathGame.pieces[currentPiece].mov.paths[0]=(parsingPath.path)
             pathGame.pieces[currentPiece].mov.space[0]=(parsingPath.space)
+            if(mirrorPath && pathGame.pieces[currentPiece].mov.paths.length < 2){
+                pathGame.pieces[currentPiece].mov.paths.push([])
+                pathGame.pieces[currentPiece].mov.space.push([])
+            }
+            if(mirrorPath){
+                pathGame.pieces[currentPiece].mov.paths[1] = mirrorParsingPath.path
+                pathGame.pieces[currentPiece].mov.space[1] = mirrorParsingPath.space   
+            }
             pathGame.board[indexAndCoordinates.coordinatesToIndex[pathPiecePosition]] = pathGame.pieces[currentPiece]
             var highlightPathMoveList = {
                 highlightPathMoveList: move.moveListCoordinates(move.pieceMoveList(pathGame.board, pathPiecePosition))
@@ -236,20 +256,32 @@ function createGameCreateSocket(sessionParser){
                         FENGame.pieces[mirrorPiece].mov.attSpace.push(parsingPath.space)
                     }
                 }
+                if(mirrorPath){
+                    if(movePath){
+                        FENGame.pieces[currentPiece].mov.paths.push(mirrorParsingPath.path)
+                        FENGame.pieces[currentPiece].mov.space.push(mirrorParsingPath.space)
+                        if(mirrorPieceSelect){
+                            FENGame.pieces[mirrorPiece].mov.paths.push(mirrorParsingPath.path)
+                            FENGame.pieces[mirrorPiece].mov.space.push(mirrorParsingPath.space)
+                        }
+                    }
+                    if(attackPath){
+                        FENGame.pieces[currentPiece].mov.attPaths.push(mirrorParsingPath.path)
+                        FENGame.pieces[currentPiece].mov.attSpace.push(mirrorParsingPath.space)
+                        if(mirrorPieceSelect){
+                            FENGame.pieces[mirrorPiece].mov.attPaths.push(mirrorParsingPath.path)
+                            FENGame.pieces[mirrorPiece].mov.attSpace.push(mirrorParsingPath.space)
+                        }
+                    }
+                }
             }
             parsingPath.path = []
             parsingPath.space = []
-            if(movePath){
-                pathGame.pieces[currentPiece].mov.path = JSON.parse(JSON.stringify(parsingPath.path))
-                pathGame.pieces[currentPiece].mov.space = JSON.parse(JSON.stringify(parsingPath.space))
-            }
-            if(attackPath){
-                pathGame.pieces[currentPiece].mov.attPaths = JSON.parse(JSON.stringify(parsingPath.path))
-                pathGame.pieces[currentPiece].mov.attSpace = JSON.parse(JSON.stringify(parsingPath.space))
-            }
-
+            mirrorParsingPath.path = []
+            mirrorParsingPath.space = []
             var highlightCurrentPieceMoveList = {
-                highlightCurrentPieceMoveList: move.moveListCoordinates(move.pieceMoveList(currentPieceBoard, currentPiecePosition))
+                highlightCurrentPieceMoveList: move.moveListCoordinates(move.pieceMoveList(currentPieceBoard, currentPiecePosition)),
+                highlightCurrentPieceIgnoreList: move.getIgnoreList(FENGame.pieces[currentPiece].movmods)
             }
             var highlightPathMoveList = {
                 highlightPathMoveList: []
@@ -257,19 +289,13 @@ function createGameCreateSocket(sessionParser){
             ws.send(JSON.stringify(highlightCurrentPieceMoveList))
             ws.send(JSON.stringify(highlightPathMoveList))
         },
-        undoPath: function(message, ws, req){
-            if(parsingPath.path.length<=2){
+        eraseUnsubmittedPath: function(message, ws, req){
                 parsingPath.path = []
-                parsingPath.space.pop()
+                parsingPath.space = []
+                mirrorParsingPath.path = []
+                mirrorParsingPath.space = []
                 pathGame.board[indexAndCoordinates.coordinatesToIndex[pathPiecePosition]].mov.paths = [[]]
                 pathGame.board[indexAndCoordinates.coordinatesToIndex[pathPiecePosition]].mov.space = [[]]
-            }
-            else if(parsingPath.path.length>2){
-                parsingPath.space.pop()
-                parsingPath.path.pop()
-                pathGame.board[indexAndCoordinates.coordinatesToIndex[pathPiecePosition]].mov.paths = [parsingPath.path]
-                pathGame.board[indexAndCoordinates.coordinatesToIndex[pathPiecePosition]].mov.space = [parsingPath.space]
-            }
 
             var highlightPathMoveList = {
                 highlightPathMoveList: move.moveListCoordinates(move.pieceMoveList(pathGame.board, pathPiecePosition))
@@ -319,7 +345,8 @@ function createGameCreateSocket(sessionParser){
         },
         highlightFENMoveList: function(message, ws, req){
             var highlightFENMoveList = {
-                highlightFENMoveList: move.moveListCoordinates(move.pieceMoveList(FENGame.board, message.highlightFENMoveList.square))
+                highlightFENMoveList: move.moveListCoordinates(move.pieceMoveList(FENGame.board, message.highlightFENMoveList.square)),
+                highlightFENIgnoreList: move.getIgnoreList(FENGame.pieces[currentPiece].movmods)
             }
             ws.send(JSON.stringify(highlightFENMoveList))
         },
@@ -376,7 +403,8 @@ function createGameCreateSocket(sessionParser){
                     }
                 }
                 var highlightCurrentPieceMoveList = {
-                    highlightCurrentPieceMoveList: move.moveListCoordinates(move.pieceMoveList(currentPieceBoard, currentPiecePosition))
+                    highlightCurrentPieceMoveList: move.moveListCoordinates(move.pieceMoveList(currentPieceBoard, currentPiecePosition)),
+                    highlightCurrentPieceIgnoreList: move.getIgnoreList(FENGame.pieces[currentPiece].movmods)
                 }
                 ws.send(JSON.stringify(highlightCurrentPieceMoveList))
             }
@@ -392,7 +420,8 @@ function createGameCreateSocket(sessionParser){
                     FENGame.pieces[mirrorPiece].movmods.push('TELEPORT'+index)
                 }
                 var highlightCurrentPieceMoveList = {
-                    highlightCurrentPieceMoveList: move.moveListCoordinates(move.pieceMoveList(currentPieceBoard, currentPiecePosition))
+                    highlightCurrentPieceMoveList: move.moveListCoordinates(move.pieceMoveList(currentPieceBoard, currentPiecePosition)),
+                    highlightCurrentPieceIgnoreList: move.getIgnoreList(FENGame.pieces[currentPiece].movmods)
                 }
                 ws.send(JSON.stringify(highlightCurrentPieceMoveList))
             }
@@ -411,7 +440,8 @@ function createGameCreateSocket(sessionParser){
                     }
                 }
                 var highlightCurrentPieceMoveList = {
-                    highlightCurrentPieceMoveList: move.moveListCoordinates(move.pieceMoveList(currentPieceBoard, currentPiecePosition))
+                    highlightCurrentPieceMoveList: move.moveListCoordinates(move.pieceMoveList(currentPieceBoard, currentPiecePosition)),
+                    highlightCurrentPieceIgnoreList: move.getIgnoreList(FENGame.pieces[currentPiece].movmods)
                 }
                 ws.send(JSON.stringify(highlightCurrentPieceMoveList))
             }
@@ -427,49 +457,138 @@ function createGameCreateSocket(sessionParser){
                     FENGame.pieces[mirrorPiece].movmods.push('REMOVEABSOLUTE'+index)
                 }
                 var highlightCurrentPieceMoveList = {
-                    highlightCurrentPieceMoveList: move.moveListCoordinates(move.pieceMoveList(currentPieceBoard, currentPiecePosition))
+                    highlightCurrentPieceMoveList: move.moveListCoordinates(move.pieceMoveList(currentPieceBoard, currentPiecePosition)),
+                    highlightCurrentPieceIgnoreList: move.getIgnoreList(FENGame.pieces[currentPiece].movmods)
                 }
                 ws.send(JSON.stringify(highlightCurrentPieceMoveList))
             }
+        },
+        gameSubmit: function(message, ws, req){
+            var gameSubmit = message.gameSubmit
+            var name = gameSubmit.name
+            var description = gameSubmit.description
+            var winCondition = gameSubmit.winCondition
+            if(name==""){
+                ws.send(JSON.stringify({
+                    gameSubmitFail: "Invalid Name"
+                }))
+                return
+            }
+            if(description==""){
+                ws.send(JSON.stringify({
+                    gameSubmitFail: "Invalid Description"
+                }))
+                return
+            }
+            MongoClient.connect(url, function(err, db) {
+                if (err) throw err;
+                db.db('FairyChessMaker').collection("Games").findOne({"name": name}, function(err,result){
+                    if (err) throw err;
+                if(result == null){
+                    db.db('FairyChessMaker').collection("Games").insertOne({
+                        "name": name,
+                        "description": description,
+                        "pieces": JSON.stringify(FENGame.pieces),
+                        "FEN": FEN,
+                        "winCondition": winCondition
+                    })
+                    console.log('game added')
+                    ws.send(JSON.stringify({
+                        gameSubmitSuccess: "/browse"
+                    }))
+                }
+                else{
+                    ws.send(JSON.stringify({
+                        gameSubmitFail: "Name has already been taken"
+                    }))
+                    console.log('game add fail')
+                }
+                db.close();
+                })
+              });
+        },
+        mirrorPathSelect: function(message, ws, req){
+            mirrorPath = Boolean(message.mirrorPathSelect)
+        },
+        removeCurrentPieceMovement: function(message, ws, req){
+            FENGame.pieces[currentPiece].mov = {
+                paths: [],
+                space: [],
+                attPaths: [],
+                attSpace: [],
+            }
+            for(var i = FENGame.pieces[currentPiece].movmods.length-1; i >= 0 && FENGame.pieces[currentPiece].movmods.length>0; i--){
+                var currentMod = FENGame.pieces[currentPiece].movmods[i]
+                if(currentMod.substring(0,8)==('TELEPORT') || currentMod.substring(0,14)==('REMOVEABSOLUTE') || currentMod.substring(0,14)==('REMOVERELATIVE')){
+                    FENGame.pieces[currentPiece].movmods.splice(i,1)
+                }
+            }
+            if(mirrorPieceSelect){
+                FENGame.pieces[mirrorPiece].mov = {
+                    paths: [],
+                    space: [],
+                    attPaths: [],
+                    attSpace: [],
+                }
+                for(var i = FENGame.pieces[mirrorPiece].movmods.length-1; i >= 0 && FENGame.pieces[mirrorPiece].movmods.length>0; i--){
+                    var currentMod = FENGame.pieces[mirrorPiece].movmods[i]
+                    if(currentMod.substring(0,8)==('TELEPORT') || currentMod.substring(0,14)==('REMOVEABSOLUTE') || currentMod.substring(0,14)==('REMOVERELATIVE')){
+                        FENGame.pieces[mirrorPiece].movmods.splice(i,1)
+                    }
+                }
+            }
+            ws.send(JSON.stringify({
+                highlightCurrentPieceMoveList: move.moveListCoordinates(move.pieceMoveList(currentPieceBoard, currentPiecePosition))
+            }))
         }
     }
 
     var pathAdd = {
-        UP: function(amount){
-            addToPath(-16, amount)
+        UP: function(pathName, amount){
+            addToPath(pathName, -16, amount)
         },
-        DOWN: function(amount){
-            addToPath(16, amount)
+        DOWN: function(pathName, amount){
+            addToPath(pathName,16, amount)
         },
-        LEFT: function (amount){
-           addToPath(-1, amount)
+        LEFT: function (pathName,amount){
+           addToPath(pathName,-1, amount)
         },
-        RIGHT: function(amount){
-            addToPath(1, amount)
+        RIGHT: function(pathName,amount){
+            addToPath(pathName,1, amount)
         },
-        UPLEFT: function(amount){
-            addToPath(-17, amount)
+        UPLEFT: function(pathName,amount){
+            addToPath(pathName,-17, amount)
         },
-        UPRIGHT: function(amount){
-            addToPath(-15, amount)
+        UPRIGHT: function(pathName,amount){
+            addToPath(pathName,-15, amount)
         },
-        DOWNLEFT: function(amount){
-            addToPath(15, amount)
+        DOWNLEFT: function(pathName,amount){
+            addToPath(pathName,15, amount)
         },
-        DOWNRIGHT: function(amount){
-            addToPath(17, amount)
+        DOWNRIGHT: function(pathName,amount){
+            addToPath(pathName,17, amount)
         }
     }
 
-    function addToPath(lengthZero, amount){
-        if(parsingPath.path.length==0){
-            parsingPath.path.push(lengthZero)
-            parsingPath.path.push(amount*lengthZero)
+    var addPathMirror = {
+        UP: "DOWN",
+        LEFT: "RIGHT",
+        RIGHT: "LEFT",
+        DOWN: "UP",
+        UPLEFT: "DOWNRIGHT",
+        UPRIGHT: "DOWNLEFT",
+        DOWNLEFT: "UPRIGHT",
+        DOWNRIGHT: "UPLEFT"
+    }
+    function addToPath(pathName, lengthZero, amount){
+        if(pathName.path.length==0){
+            pathName.path.push(lengthZero)
+            pathName.path.push(amount*lengthZero)
         }
         else{
-        parsingPath.path.push(parsingPath.path[parsingPath.path.length-1]+amount*lengthZero)
+        pathName.path.push(pathName.path[pathName.path.length-1]+amount*lengthZero)
         }
-        parsingPath.space.push(Math.abs(lengthZero))
+        pathName.space.push(Math.abs(lengthZero))
     }
 
     var wss = new WebSocket.Server({ noServer: true})

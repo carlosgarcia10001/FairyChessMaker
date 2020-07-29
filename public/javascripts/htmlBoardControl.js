@@ -15,12 +15,19 @@ function createLocateHtmlSquares(htmlSquares){
     return locateSquares
 }
 
-function highlightValidMoves(locateHtmlSquares, moveList){
+function highlightValidMoves(locateHtmlSquares, moveList, ignoreList = []){
     var moveset = moveList
+    console.log(ignoreList)
     for(var i = 0; i < moveset.length; i++){
         if(!($(locateHtmlSquares[moveset[i]]).hasClass('moveset'))){
             $(locateHtmlSquares[moveset[i]]).addClass("moveset")
             $(locateHtmlSquares[moveset[i]]).css('background', highlightMove)
+        }
+    }
+    for(var i = 0; i < ignoreList.length; i++){
+        if(!($(locateHtmlSquares[ignoreList[i]]).hasClass('moveset'))){
+            $(locateHtmlSquares[ignoreList[i]]).addClass("moveset")
+            $(locateHtmlSquares[ignoreList[i]]).css('background', 'red')
         }
     }
 }
@@ -34,9 +41,9 @@ function unHighlightValidMoves(htmlSquares){
     }
 }
 
-function updateHighlightedMoves(htmlSquares, locateHtmlSquares, moveList){
+function updateHighlightedMoves(htmlSquares, locateHtmlSquares, moveList, ignoreList){
     unHighlightValidMoves(htmlSquares)
-    highlightValidMoves(locateHtmlSquares, moveList)
+    highlightValidMoves(locateHtmlSquares, moveList, ignoreList)
 }
 
 function updateHighlightedMovesOnGameCreator(parsedHtmlBoard, parsedIndex, htmlSquares, locateHtmlSquares){

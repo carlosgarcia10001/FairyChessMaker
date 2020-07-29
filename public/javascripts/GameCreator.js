@@ -1,63 +1,6 @@
-var piece = require('./Piece')
-var indexAndCoordinates = require('./IndexAndCoordinates')
-var game = require('./Game')
-var htmlBoardControl = require('./HtmlBoardControl')
-var abbreviationTranslator = require('./abbreviationTranslator')
-const socket = new WebSocket('ws://localhost:3000/gamecreate/')
-var horizontalPathLeft = {
- path: [-1,-7],
- space: [1]
-}
-var horizontalPathRight = {
- path: [1,7],
- space: [1]
-}
-var verticalPathUp = {
- path: [-16,-112],
- space: [16]
-}
-var verticalPathDown = {
-    path: [16,112],
-    space: [16]
-}
-var diagonalPathUpLeft = {
-    path: [-17,-119],
-    space: [17]
-}
-var diagonalPathUpRight = {
-    path: [-15, -117],
-    space: [15]
-}
-var diagonalPathDownLeft = {
-    path: [15, 117],
-    space: [15]
-}
-var diagonalPathDownRight = {
-    path: [17,119],
-    space: [17] 
-}
 
-var right = [1,1]
-var left = [-1,-1]
-var down = [16,16]
-var downRight = [17,17]
-var downLeft = [15,15]
-var up = [-16,-16]
-var upLeft = [-17,-17]
-var upRight = [-15,-15]
-var knightUpLeft1 = [-33,-33]
-var knightUpLeft2 = [-18,-18]
-var knightUpRight1 = [-31,-31]
-var knightUpRight2 = [-14,-14]
-var knightDownLeft1 = [14,14]
-var knightDownLeft2 = [31,31]
-var knightDownRight1 = [18,18]
-var knightDownRight2 = [33,33]
-var verticalSpace = 16
-var diagonalSpaceUpLeft = 17
-var diagonalSpaceUpRight = 15
-var diagonalSpaceDownLeft = 15
-var diagonalSpaceDownRight = 17
+var htmlBoardControl = require('./HtmlBoardControl')
+const socket = new WebSocket('ws://localhost:3000/gamecreate/')
 
 $(document).ready(function(){
     var htmlSquares = []
@@ -67,11 +10,9 @@ $(document).ready(function(){
     var locateHtmlFENBoardSquares = {}
     var locateHtmlCurrentPieceBoardSquares = {}
     var locateHtmlPathBoardSquares = {}
-    var locateHtmlSquares = {}
-    var pieces = piece.createPieces()
     var currentPiece = "wP"
     var currentPiecePosition = 'd4'
-    var pathPiecePositoin = 'd4'
+    var pathPiecePosition = 'd4'
     $(document).on('load',function(){
         htmlSquares = htmlBoardControl.createHtmlSquares()
         for(var i = 0; i < htmlSquares.length; i++){
@@ -111,13 +52,14 @@ $(document).ready(function(){
 
     var messageResponse = {
         highlightCurrentPieceMoveList: function(message){
-            htmlBoardControl.updateHighlightedMoves(htmlCurrentPieceBoardSquares, locateHtmlCurrentPieceBoardSquares, message.highlightCurrentPieceMoveList)
+            console.log(message.highlightCurrentPieceIgnoreList)
+            htmlBoardControl.updateHighlightedMoves(htmlCurrentPieceBoardSquares, locateHtmlCurrentPieceBoardSquares, message.highlightCurrentPieceMoveList, message.highlightCurrentPieceIgnoreList)
         },
         highlightPathMoveList: function(message){
             htmlBoardControl.updateHighlightedMoves(htmlPathBoardSquares, locateHtmlPathBoardSquares, message.highlightPathMoveList)
         },
         highlightFENMoveList: function(message){
-            htmlBoardControl.updateHighlightedMoves(htmlFENBoardSquares, locateHtmlFENBoardSquares, message.highlightFENMoveList)
+            htmlBoardControl.updateHighlightedMoves(htmlFENBoardSquares, locateHtmlFENBoardSquares, message.highlightFENMoveList, message.highlightFENIgnoreList)
         },
         getAttributeMods: function(message){
             var attributeMods = message.getAttributeMods
@@ -149,6 +91,12 @@ $(document).ready(function(){
                 case 'TRAITOR':
                     $("#attackTypesOptions").val('Traitor')
             }
+        },
+        gameSubmitSuccess: function(message){
+            window.location.assign(message.gameSubmitSuccess)
+        },
+        gameSubmitFail: function(message){
+            $("#gameSubmitFailText").text(message.gameSubmitFail)
         }
     }
 
@@ -158,25 +106,26 @@ $(document).ready(function(){
                 data = JSON.parse(message.data)
                 var keys = Object.keys(data)
                 for(var i = 0; i < keys.length; i++){
-                    messageResponse[keys[i]](data)
+                    if(messageResponse[keys[i]]){
+                        messageResponse[keys[i]](data)
+                    }
                 }
             }
     });
-    $("input[value='Submit']").click(function(){
-        var name = $("#name").val()
-        var description = $("#desciption").val()
-        $.post("/gamecreate",{
-            name: name,
-            author: author,
-            description: description,
-            FEN: htmlFENBoard.position(),
-            pieces: pieces
-        }).done(function(data){
-            window.location.assign(data)
-        })
+    $("#gameSubmit").click(function(){
+        socket.send(JSON.stringify({
+            gameSubmit: {
+                name: $("#nameTextBox").val(),
+                description: $("#descriptionTextBox").val(),
+                winCondition: $("#winConditionsOptions").val(),
+            }
+        }))
     })
     $("#FENSubmit").click(function(){
         htmlFENBoard.position($("#FEN").val())
+        socket.send(JSON.stringify({
+            FEN: htmlFENBoard.position('FEN')
+        }))
     })
     $("#submitPath").click(function(){
         var message = {
@@ -184,9 +133,9 @@ $(document).ready(function(){
         }
         socket.send(JSON.stringify(message))
     })
-    $("#undoButton").click(function(){
+    $("#submitEraseUnsubmittedPath").click(function(){
         var message = {
-            undoPath: "undoPath"
+            eraseUnsubmittedPath: "removePath"
         }
         socket.send(JSON.stringify(message))
     })
@@ -299,35 +248,17 @@ $(document).ready(function(){
                 absoluteDenyMovement: $('#absoluteDenyMovementAmount').val()
         }))
     })
-    function currentPieceOnDragStart (source, draggedPiece, position, orientation) {
-        if(draggedPiece!=currentPiece && source =='spare'){
-            htmlCurrentPieceBoard.position({
-                d4: draggedPiece
-            })
-            htmlPathBoard.position({
-                d4: draggedPiece
-            })
-            currentPiecePosition = 'd4'
-            pathPiecePosition = 'd4'
-            currentPiece = draggedPiece
-            $("#pieceName").text(currentPiece)
-            var currentPieceSend = {
-                currentPiece: draggedPiece,
-            }
-            socket.send(JSON.stringify(currentPieceSend))
-            socket.send(JSON.stringify({
-                getMoveMods: ""
-            }))
-            socket.send(JSON.stringify({
-                getAttributeMods: ""
-            }))
-            return false
-        }
-        if(draggedPiece==currentPiece && source == 'spare'){
-            return false
-        }
-    }
-
+    $('#mirrorPathSelect').change(function(){
+        socket.send(JSON.stringify({
+            mirrorPathSelect: $('#mirrorPathSelect').prop('checked')
+        }))
+        console.log($('#mirrorPathSelect').prop('checked'))
+    })
+    $('#removeCurrentPiecePathsButton').click(function(){
+        socket.send(JSON.stringify({
+            removeCurrentPieceMovement: "removeCurrentPieceMovement"
+        }))
+    })
     function currentPieceOnDrop(source, target, piece, newPos, oldPos, orientation){
         if(target != 'offboard'){
             currentPiecePosition = Object.keys(newPos)[0]

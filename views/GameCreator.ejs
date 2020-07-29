@@ -16,6 +16,8 @@
             <%- include('partials/GameCreatorSelectOne', {id: "attackTypes", p: "Attack Type", listName: attackTypeNames, listDescription: attackTypeDescriptions}) %>
             <%- include('partials/GameCreatorSelectMany',{id: "moveMods", p: "Movement Modifers", listName: moveModNames, listDescription: moveModDescriptions}) %>
             <%- include('partials/GameCreatorSelectMany',{id: "attributeMods", p: "Attribute Modifers", listName: attributeModNames, listDescription: attributeModDescriptions}) %>
+            <br>
+            <input type = "submit" id = "removeCurrentPiecePathsButton" value = "Remove Movement">
         </div>
         <div id = "pathBoard" style="width: 225px">
         </div>
@@ -75,12 +77,16 @@
             <div id = "lethalMovePath">
                 <input type = "checkbox" id = "lethalMovePathSelect" checked>Lethal Move Path
             </div>
-            <br> 
+             
             <div id = "nonLethalMovePath">
                 <input type = "checkbox" id = "nonLethalMovePathSelect" checked>Non-Lethal Move Path
             </div>
             <br>
-            <button id = "undoButton">Undo</button>
+            <div id = "mirrorPath">
+                <input type = "checkbox" id = "mirrorPathSelect" checked>Mirror Path
+            </div>
+            <br>
+            <button id = "submitEraseUnsubmittedPath">Erase Unsubmitted Path</button>
             <button id = "submitPath">Add Path To Selected Piece</button>
             <br>
             <h2>Add Individual Square</h2>
@@ -107,16 +113,17 @@
         </div>
         <div id = "boardMeta">
             <h3>Name</h3>
-            <input type = "text" name = "Name" id = "Name"/>
+            <input type = "text" name = "Name" id = "nameTextBox"/>
             <h3>FEN</h3>
-            <input type = "text" name = "FEN" id = "FEN"/>
+            <input type = "text" name = "FEN" id = "FENTextBox"/>
             <button id = "FENSubmit">Submit New FEN</button>
             <h3>Description</h3>
-            <input type = "text" name = "Description" id = "Description"/>
+            <input type = "text" name = "Description" id = "descriptionTextBox"/>
             <%- include('partials/GameCreatorSelectOne', {id: "winConditions", p: "Win Condition", listName: winConditionNames, listDescription: winConditionDescriptions}) %>
             <br>
             <br>
-            <input type = "submit" value = "Submit Game"/>
+            <div id = "gameSubmitFailText"></div>
+            <input type = "submit" id = "gameSubmit" value = "Submit Game"/>
         </div>
         <script src = "../javascripts/jquery.min.js"></script>
         <script src = "../javascripts/chessboard-1.0.0.min.js"></script>
