@@ -393,7 +393,7 @@ function createGameCreateSocket(sessionParser){
             if(currentPiece != ""){
                 var row = message.addIndividualSquare.row
                 var column = message.addIndividualSquare.column
-                if(!isNaN(Number(row)) && !isNaN(Number(column))){
+                if(!isNaN(Number(row)) && !isNaN(Number(column)) && Math.abs(Number(row)) < 8 && Math.abs(Number(column)) < 7){
                     var squareIndex = Number(row*16)+Number(column)
                     FENGame.pieces[currentPiece].mov.paths.push([squareIndex,squareIndex])
                     FENGame.pieces[currentPiece].mov.space.push([1])
@@ -412,7 +412,7 @@ function createGameCreateSocket(sessionParser){
         absoluteTeleport: function(message, ws, req){
             var column = message.absoluteTeleport.charAt(0).toLowerCase()
             var row = message.absoluteTeleport.charAt(1)
-            var validSquare = column >= 'a' && column <= 'h' && row >= '1' && row <= '8' 
+            var validSquare = column >= 'a' && column <= 'h' && row >= '1' && row <= '8' && message.absoluteTeleport.length == 2
             if(currentPiece != "" && validSquare){
                 var index = indexAndCoordinates.coordinatesToIndex[message.absoluteTeleport]
                 FENGame.pieces[currentPiece].movmods.push('TELEPORT'+index)
@@ -430,7 +430,7 @@ function createGameCreateSocket(sessionParser){
             if(currentPiece != ""){
                 var row = message.relativeDenyMovement.row
                 var column = message.relativeDenyMovement.column
-                if(!isNaN(Number(row)) && !isNaN(Number(column))){
+                if(!isNaN(Number(row)) && !isNaN(Number(column)) && Math.abs(Number(row)) < 8 && Math.abs(Number(column)) < 7){
                     var squareIndex = Number(row*16)+Number(column)
                     if(FENGame.pieces[currentPiece].movmods.indexOf("REMOVERELATIVE"+squareIndex)==-1){
                         FENGame.pieces[currentPiece].movmods.push("REMOVERELATIVE"+squareIndex)
@@ -449,7 +449,7 @@ function createGameCreateSocket(sessionParser){
         absoluteDenyMovement: function(message, ws, req){
             var column = message.absoluteDenyMovement.charAt(0).toLowerCase()
             var row = message.absoluteDenyMovement.charAt(1)
-            var validSquare = column >= 'a' && column <= 'h' && row >= '1' && row <= '8' 
+            var validSquare = column >= 'a' && column <= 'h' && row >= '1' && row <= '8' && message.absoluteDenyMovement.length == 2
             if(currentPiece != "" && validSquare){
                 var index = indexAndCoordinates.coordinatesToIndex[message.absoluteDenyMovement]
                 FENGame.pieces[currentPiece].movmods.push('REMOVEABSOLUTE'+index)

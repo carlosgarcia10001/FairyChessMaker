@@ -20,11 +20,11 @@ body{
 
 #currentPieceBoard{
     padding: 20px;
-    padding-top: 38.5px;
+    padding-top: 66.0px;
 }
 #pieceStats{
     position: absolute;
-    right: 48.0%;
+    right: 45.0%;
     margin: auto;
 }
 

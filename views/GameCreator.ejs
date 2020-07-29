@@ -17,7 +17,28 @@
             <%- include('partials/GameCreatorSelectMany',{id: "moveMods", p: "Movement Modifers", listName: moveModNames, listDescription: moveModDescriptions}) %>
             <%- include('partials/GameCreatorSelectMany',{id: "attributeMods", p: "Attribute Modifers", listName: attributeModNames, listDescription: attributeModDescriptions}) %>
             <br>
-            <input type = "submit" id = "removeCurrentPiecePathsButton" value = "Remove Movement">
+            <input type = "submit" id = "removeCurrentPiecePathsButton" value = "Remove All Movement">
+            <br>
+            <h2>Add Individual Square</h2>
+            <b>Row </b>
+                <input type = "number" id = "addIndividualSquareRowAmount" name = "row" size = 1 min = "0" max = "7">
+                <b>Column</b>
+                <input type = "number" id = "addIndividualSquareColumnAmount" name = "column" size = 1 min = "0" max = "7">
+                <button id = "addIndividualSquareSubmit">Submit</button>
+                <br>
+            <h2>Absolute Teleport </h2>
+                <b>Board Coordinate</b> <input type = "textbox" id = "absoluteTeleportAmount" name = "Teleport" size = "2'">
+                <button id = "absoluteTeleportSubmit">Submit</button>
+                <br>
+            <h2>Relative Deny Movement </h2>
+                <b>Row </b>
+                <input type = "number" id = "relativeDenyMovementRowAmount" name = "row" size = 1 min = "0" max = "7">
+                <b>Column</b>
+                <input type = "number" id = "relativeDenyMovementColumnAmount" name = "row" size = 1 min = "0" max = "7">
+                <button id = "relativeDenyMovementSubmit">Submit</button>
+            <h2>Absolute Deny Movement </h2>
+                <b>Board Coordinate </b> <input type = "textbox" id = "absoluteDenyMovementAmount" name = "moveDeny" size = "2">
+            <button id = "absoluteDenyMovementSubmit">Submit</button>
         </div>
         <div id = "pathBoard" style="width: 225px">
         </div>
@@ -88,27 +109,6 @@
             <br>
             <button id = "submitEraseUnsubmittedPath">Erase Unsubmitted Path</button>
             <button id = "submitPath">Add Path To Selected Piece</button>
-            <br>
-            <h2>Add Individual Square</h2>
-            <b>Row </b>
-                <input type = "number" id = "addIndividualSquareRowAmount" name = "row" size = 1 min = "0" max = "7">
-                <b>Column</b>
-                <input type = "number" id = "addIndividualSquareColumnAmount" name = "column" size = 1 min = "0" max = "7">
-                <button id = "addIndividualSquareSubmit">Submit</button>
-                <br>
-            <h2>Absolute Teleport </h2>
-                <b>Board Coordinate</b> <input type = "textbox" id = "absoluteTeleportAmount" name = "Teleport" size = "2'">
-                <button id = "absoluteTeleportSubmit">Submit</button>
-                <br>
-            <h2>Relative Deny Movement </h2>
-                <b>Row </b>
-                <input type = "number" id = "relativeDenyMovementRowAmount" name = "row" size = 1 min = "0" max = "7">
-                <b>Column</b>
-                <input type = "number" id = "relativeDenyMovementColumnAmount" name = "row" size = 1 min = "0" max = "7">
-                <button id = "relativeDenyMovementSubmit">Submit</button>
-            <h2>Absolute Deny Movement </h2>
-                <b>Board Coordinate </b> <input type = "textbox" id = "absoluteDenyMovementAmount" name = "moveDeny" size = "2">
-            <button id = "absoluteDenyMovementSubmit">Submit</button>
             </div>
         </div>
         <div id = "boardMeta">
